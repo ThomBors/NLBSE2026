@@ -1,2 +1,4 @@
+torch
+transformers
 setfit==1.1.2 
 datasets==3.6.0

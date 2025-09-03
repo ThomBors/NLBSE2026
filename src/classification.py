@@ -17,14 +17,15 @@ labels = {
     'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
 }
 
-def classifiers(ds):
+def classifiers(cfg,ds):
     for lang in langs:
-        model = SetFitModel.from_pretrained("sentence-transformers/paraphrase-MiniLM-L6-v2", multi_target_strategy="multi-output")
+        model = SetFitModel.from_pretrained(cfg.experiment.classifier.modelname, 
+                                            multi_target_strategy="multi-output")
 
         args = TrainingArguments(
             num_epochs=5 if lang == 'java' else 10,
-            batch_size=32,
-            num_iterations=20
+            batch_size=cfg.experiment.classifier.batch_size,
+            num_iterations=cfg.experiment.classifier.num_iterations
         )
 
         trainer = Trainer(
@@ -36,4 +37,4 @@ def classifiers(ds):
         )
 
         trainer.train()
-        trainer.model.save_pretrained(f'../models/{lang}-SetFit')
+        trainer.model.save_pretrained(f'{cfg.path.res_dir}/models/{lang}-SetFit')

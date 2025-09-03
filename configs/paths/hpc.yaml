@@ -1,0 +1,18 @@
+# path to root directory
+root_dir: ${oc.env:PROJECT_ROOT}
+
+data_dir: /data/users/tborsani/sharpnes/datasets
+
+# path to logging directory
+log_dir: /data/users/tborsani/sharpnes/logs/train/
+
+# path to output directory
+output_dir: /data/users/tborsani/sharpnes/outputs
+
+# path to working directory
+work_dir: ${hydra:runtime.cwd}
+
+
+res_dir: /data/users/tborsani/sharpnes/results/train/
+
+chk_dir: /data/users/tborsani/sharpnes/checkpoints/

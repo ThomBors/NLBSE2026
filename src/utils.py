@@ -3,6 +3,8 @@ from transformers import TrainingArguments
 from transformers import Trainer
 from transformers import DataCollatorForLanguageModeling
 from datasets import Dataset, DatasetDict, load_dataset
+import numpy as np
+import logging
 import random
 import math
 import torch
@@ -38,3 +40,26 @@ def filter_synthetic(example,SyntheticQualityScore):
     elif example["synthetic"] == True and example["similarity_score"] is not None:
         return example["similarity_score"] > SyntheticQualityScore
     return False
+
+def set_logger():
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
+
+def set_seed(seed):
+    """for reproducibility
+    :param seed:
+    :return:
+    """
+    np.random.seed(seed)
+    random.seed(seed)
+
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True

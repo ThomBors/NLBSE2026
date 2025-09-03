@@ -5,9 +5,9 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 import math
 
-similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def compute_similarity(original_sentence, new_sentence):
+
+def compute_similarity(similarity_model,original_sentence, new_sentence):
     embeddings = similarity_model.encode([original_sentence, new_sentence], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     return score
@@ -23,7 +23,7 @@ def predict_masked_token(model, tokenizer, input_ids):
         predicted_token = tokenizer.convert_ids_to_tokens(predicted_id)
     return predicted_token
 
-def predict_masked_token_topn(model, tokenizer, input_ids, n=5):
+def predict_masked_token_topn(model, tokenizer, input_ids, n=10):
     """
     Predict the masked token by randomly sampling from the top-n predictions.
     """
@@ -47,7 +47,7 @@ def predict_masked_token_topn(model, tokenizer, input_ids, n=5):
 def mask_one_token(input_ids, labels, tokenizer):
     if len(labels) < 2:
         return input_ids, None
-    multi_label_positions = [i for i, l in enumerate(labels) if l > 1]
+    multi_label_positions = [i for i, l in enumerate(labels) if sum(l) > 1]
     if not multi_label_positions:
         return input_ids, None
     mask_idx = random.choice(multi_label_positions)
@@ -55,7 +55,7 @@ def mask_one_token(input_ids, labels, tokenizer):
     input_ids[mask_idx] = tokenizer.mask_token_id
     return input_ids, (mask_idx, original_id)
 
-def augment_example(example, model, tokenizer, x_augments=3):
+def augment_example(cfg,example, model,similarity_model, tokenizer, x_augments=1):
     generated_sentences = set()
     attempts = 0
     max_attempts = x_augments * 3  # avoid infinite loops
@@ -71,7 +71,7 @@ def augment_example(example, model, tokenizer, x_augments=3):
         if mask_info is None:
             break
         mask_idx, original_id = mask_info
-        predicted_token = predict_masked_token_topn(model, tokenizer, masked_input_ids)
+        predicted_token = predict_masked_token_topn(model, tokenizer, masked_input_ids,cfg.experiments.component.augment.topn)
         original_token = tokenizer.convert_ids_to_tokens(original_id)
 
         if predicted_token != original_token:
@@ -85,7 +85,7 @@ def augment_example(example, model, tokenizer, x_augments=3):
 
     augmented_list = []
     for sent in generated_sentences:
-        score = compute_similarity(example["combo"], sent)
+        score = compute_similarity(similarity_model,example["combo"], sent)
         augmented_list.append({
             "index": example["index"],
             "class": example["class"],
@@ -98,21 +98,22 @@ def augment_example(example, model, tokenizer, x_augments=3):
 
     return augmented_list
 
-def augment_language_multiple(ds_lang, model, tokenizer, x_augments=3):
+def augment_language_multiple(cfg,ds_lang, model,similarity_model, tokenizer, x_augments=1):
     augmented_examples = []
     for example in ds_lang:
-        augmented_examples.extend(augment_example(example, model, tokenizer, x_augments=x_augments))
+        augmented_examples.extend(augment_example(cfg,example, model,similarity_model, tokenizer, x_augments=x_augments))
     return Dataset.from_list(augmented_examples)
 
 
-def run_augmentation_pipeline(ds):
+def run_augmentation_pipeline(cfg,ds):
     # ------------------------
     # Loop through languages and create DatasetDict
     # ------------------------
+    similarity_model = SentenceTransformer(cfg.experiments.component.augment.modelname)
     augmented_datasets = DatasetDict()
 
     for lang in ["java", "pharo", "python"]:
-        model_name = f"../models/{lang}-finetuned-ModernBert"
+        model_name = f"{cfg.path.res_dir}/models/{lang}-finetuned-ModernBert"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForMaskedLM.from_pretrained(model_name)
 
@@ -124,7 +125,8 @@ def run_augmentation_pipeline(ds):
         train_ds = train_ds.add_column("synthetic", [False] * len(train_ds))
         
         # Generate augmented examples
-        augmented_train = augment_language_multiple(train_ds, model, tokenizer, x_augments=3)
+        augmented_train = augment_language_multiple(train_ds, model,similarity_model, tokenizer, 
+                                                    x_augments=cfg.experiments.component.augment.auments)
         
         # Add synthetic=True for augmented examples
         augmented_train = augmented_train.add_column("synthetic", [True] * len(augmented_train))
@@ -135,4 +137,4 @@ def run_augmentation_pipeline(ds):
         augmented_datasets[f"{lang}_train"] = combined_train
         augmented_datasets[f"{lang}_test"] = ds[f"{lang}_test"]  # keep original test
 
-    augmented_datasets.save_to_disk("datasets/augmented_datasets")
+    augmented_datasets.save_to_disk(f"{cfg.path.data_dir}/augmented_datasets")

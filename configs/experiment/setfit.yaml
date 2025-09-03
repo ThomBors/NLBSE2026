@@ -1,0 +1,29 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /component/aument: SyntheticData
+  - override /component/finetue: ModernBERT
+  - override /component/classifier: setfit
+
+trainer:
+  SYNQ: 0.1
+  ValidationSize: 0.2
+
+component:
+  aument:
+    auments: 1
+    ntop: 10
+
+  finetue:
+    batch_size: 64
+    learning_rate: 2e-5
+    weight_decay: 0.01
+    mlm_probability: 0.15
+
+  classifier:
+    batch_size: 32
+    num_iterations: 20
+
