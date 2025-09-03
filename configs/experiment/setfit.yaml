@@ -1,7 +1,7 @@
 # @package _global_
 _target_: src.pipeline.pipeline
 defaults:
-  - override /component/aument: SyntheticData
+  - override /component/augment: SyntheticData
   - override /component/finetue: ModernBERT
   - override /component/classifier: setfit
 
@@ -10,8 +10,8 @@ trainer:
   ValidationSize: 0.2
 
 component:
-  aument:
-    auments: 1
+  augment:
+    augments: 1
     ntop: 10
 
   finetue:
