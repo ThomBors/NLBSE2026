@@ -7,7 +7,7 @@ import math
 import torch
 import logging
 
-from src.utils import (tokenize_function,group_texts)
+from src.utils import (group_texts)
 
 
 def createMLforWCft(cfg,ds,langs,device):
@@ -15,10 +15,16 @@ def createMLforWCft(cfg,ds,langs,device):
     model = ModernBertForMaskedLM.from_pretrained(cfg.component.finetune.modelname).to(device)
 
     # Use batched=True to activate fast multithreading!
+    def tokenize_function(examples):
+        result = tokenizer(examples["combo"])
+        if tokenizer.is_fast:
+            result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
+        return result
+
+
+    # Use batched=True to activate fast multithreading!
     tokenized_datasets = ds.map(
-        lambda batch: tokenize_function(batch, tokenizer),
-        batched=True,
-        remove_columns=['index', 'class', 'comment_sentence', 'partition', 'combo', 'labels']
+        tokenize_function, batched=True, remove_columns=['index', 'class', 'comment_sentence', 'partition', 'combo', 'labels']
     )
     print('tokenized_datasets')
 
@@ -46,7 +52,7 @@ def createMLforWCft(cfg,ds,langs,device):
             output_dir=f"{cfg.paths.res_dir}/models/{l}-finetuned-ModernBert",
             overwrite_output_dir=True,
             eval_strategy="epoch",
-            save_strategy="epoch",
+            save_strategy="no",
             logging_dir= f"{cfg.paths.log_dir}/models/logs",
             learning_rate=cfg.component.finetune.learning_rate,
             weight_decay=cfg.component.finetune.weight_decay,
