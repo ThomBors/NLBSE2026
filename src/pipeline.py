@@ -9,7 +9,7 @@ from src.utils import set_seed
 from src.finetune import createMLforWCft
 from src.augment import run_augmentation_pipeline
 from src.classification import classifiers
-from src.utils import filter_synthetic
+from src.utils import filter_synthetic,title
 from src.evaluation import evaluation
 
 class pipeline:
@@ -23,6 +23,7 @@ class pipeline:
         }
 
     def __call__(self):
+        title()
         cfg = self.cfg
         device = torch.device("cuda" if torch.cuda.is_available() & cfg.trainerHardwer.use_cuda else "cpu")
         logging.info("Device:", device)
@@ -52,7 +53,8 @@ class pipeline:
 
         # --- Test Pipeline --- #
         scores = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
-        scores.to_csv("scores.csv", index=False)
+
+        scores.to_csv(f"{cfg.paths.res_dir}/performance/scores{SYNQ}.csv", index=False)
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000
