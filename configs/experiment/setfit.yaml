@@ -1,8 +1,5 @@
 # @package _global_
-
-# to execute this experiment run:
-# python train.py experiment=example
-
+_target_: src.pipeline.pipeline
 defaults:
   - override /component/aument: SyntheticData
   - override /component/finetue: ModernBERT

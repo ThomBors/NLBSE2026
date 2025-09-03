@@ -6,7 +6,6 @@ defaults:
   - hydra: default
   - paths: default
   - extras: default
-  - hydra: default
     #- override hydra/launcher: submitit_slurm
 
 

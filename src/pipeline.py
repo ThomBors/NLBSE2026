@@ -1,0 +1,69 @@
+from datasets import load_dataset,load_from_disk
+from pathlib import Path
+import pandas as pd
+import logging
+import torch
+
+
+from src.utils import set_seed
+from src.finetune import createMLforWCft
+from src.augment import run_augmentation_pipeline
+from src.classification import classifiers
+from src.utils import filter_synthetic
+from src.evaluation import evaluation
+
+class pipeline:
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.langs = ['java', 'python', 'pharo']
+        self.labels = {
+            'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
+            'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
+            'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+        }
+
+    def __call__(self):
+        cfg = self.cfg
+        device = torch.device("cuda" if torch.cuda.is_available() & cfg.trainerHardwer.use_cuda else "cpu")
+        logging.info("Device:", device)
+
+        set_seed(cfg.seed)
+
+        
+        ds = load_dataset('NLBSE/nlbse26-code-comment-classification')
+
+        # --- fine tune ModernBERT for augmentation --- #
+        createMLforWCft(cfg,ds,self.langs,device,batch_size = 64)
+
+        # --- Synthetic Augmentation --- #
+        run_augmentation_pipeline(cfg,ds)
+
+        # --- Load new Augmentd Data --- #
+        dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
+
+        # --- Set Syntetic Quality --- #
+        SYNQ = cfg.experiment.setfit.trainer.SYNQ
+        for split_name in dsplus.keys():
+            if split_name.endswith("_train"):
+                dsplus[split_name] = dsplus[split_name].filter(filter_synthetic(SYNQ))
+
+        # --- Code Commente Classification --- #
+        classifiers(cfg,dsplus)
+
+        # --- Test Pipeline --- #
+        scores = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
+        scores.to_csv("scores.csv", index=False)
+
+        # max_avg_runtime = 5
+        # max_avg_flops = 5000
+        # # s𝑢𝑏𝑚𝑖𝑠𝑠𝑖𝑜𝑛_𝑠𝑐𝑜𝑟𝑒(𝑚𝑜𝑑𝑒𝑙)=(𝑎𝑣𝑔. 𝐹1)×0.60+max((𝑚𝑎𝑥_𝑎𝑣𝑔_𝑟𝑢𝑛𝑡𝑖𝑚𝑒−𝑚𝑒𝑎𝑠𝑢𝑟𝑒𝑑_𝑎𝑣𝑔_𝑟𝑢𝑛𝑡𝑖𝑚𝑒)/𝑚𝑎𝑥_𝑎𝑣𝑔_𝑟𝑢𝑛𝑡𝑖𝑚𝑒),0)×0.2+max(((𝑚𝑎𝑥_GFLOPs−𝑚𝑒𝑎𝑠𝑢𝑟𝑒𝑑_GFLOPs)/𝑚𝑎𝑥_GFLOPs), 0)×0.2
+        # def score(avg_f1, avg_runtime, avg_flops):
+        #     return (0.6 * avg_f1 +
+        #     0.2 * max((max_avg_runtime - avg_runtime) / max_avg_runtime, 0) +
+        #     0.2 * max((max_avg_flops - avg_flops) / max_avg_flops), 0)
+
+        # avg_f1 = scores.f1.mean()
+        # avg_runtime = total_time/10
+        # avg_flops = total_flops/10
+
+        # round(score(avg_f1, avg_runtime, avg_flops), 2)

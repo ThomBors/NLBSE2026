@@ -6,7 +6,7 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, open_dict
 
 from src.eval import evaluate
-from src.train import train
+from src.main import main
 
 
 @pytest.mark.slow
@@ -25,7 +25,7 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
         cfg_train.test = True
 
     HydraConfig().set_config(cfg_train)
-    train_metric_dict, _ = train(cfg_train)
+    train_metric_dict, _ = main(cfg_train)
 
     assert "last.ckpt" in os.listdir(tmp_path / "checkpoints")
 
