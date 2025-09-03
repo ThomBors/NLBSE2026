@@ -1,9 +1,9 @@
 # @package _global_
 _target_: src.pipeline.pipeline
 defaults:
-  - override /component/augment: SyntheticData
-  - override /component/finetue: ModernBERT
-  - override /component/classifier: setfit
+  - /component/augment: SyntheticData
+  - /component/finetune: ModernBERT
+  - /component/classifier: setfit
 
 trainer:
   SYNQ: 0.1
@@ -14,7 +14,7 @@ component:
     augments: 1
     ntop: 10
 
-  finetue:
+  finetune:
     batch_size: 64
     learning_rate: 2e-5
     weight_decay: 0.01

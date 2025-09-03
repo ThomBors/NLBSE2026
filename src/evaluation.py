@@ -18,8 +18,8 @@ def evaluation(cfg,ds,langs,labels,SYNQ):
             x = ds[f'{lan}_test'][:]["combo"]
             begin = time.time()
             for i in range(10):
-            y_pred = model(x)
-            y_pred = np.asarray(y_pred).T 
+                y_pred = model(x)
+                y_pred = np.asarray(y_pred).T 
             total = time.time() - begin
             total_time = total_time + total
         total_flops = total_flops + (sum(k.flops for k in p.key_averages()) / 1e9)

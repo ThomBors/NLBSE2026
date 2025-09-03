@@ -25,8 +25,8 @@ class pipeline:
     def __call__(self):
         title()
         cfg = self.cfg
-        device = torch.device("cuda" if torch.cuda.is_available() & cfg.trainerHardwer.use_cuda else "cpu")
-        logging.info("Device:", device)
+        device = torch.device("cuda" if torch.cuda.is_available() and cfg.trainerHardwer.use_cuda else "cpu")
+        logging.info(f"Device: {device}")
 
         set_seed(cfg.seed)
 
@@ -34,7 +34,7 @@ class pipeline:
         ds = load_dataset('NLBSE/nlbse26-code-comment-classification')
 
         # --- fine tune ModernBERT for augmentation --- #
-        createMLforWCft(cfg,ds,self.langs,device,batch_size = 64)
+        createMLforWCft(cfg,ds,self.langs,device)
 
         # --- Synthetic Augmentation --- #
         run_augmentation_pipeline(cfg,ds)
@@ -43,7 +43,7 @@ class pipeline:
         dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
 
         # --- Set Syntetic Quality --- #
-        SYNQ = cfg.experiment.setfit.trainer.SYNQ
+        SYNQ = cfg.setfit.trainer.SYNQ
         for split_name in dsplus.keys():
             if split_name.endswith("_train"):
                 dsplus[split_name] = dsplus[split_name].filter(filter_synthetic(SYNQ))

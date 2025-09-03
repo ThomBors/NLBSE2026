@@ -71,7 +71,7 @@ def augment_example(cfg,example, model,similarity_model, tokenizer, x_augments=1
         if mask_info is None:
             break
         mask_idx, original_id = mask_info
-        predicted_token = predict_masked_token_topn(model, tokenizer, masked_input_ids,cfg.experiments.component.augment.topn)
+        predicted_token = predict_masked_token_topn(model, tokenizer, masked_input_ids,cfg.component.augment.topn)
         original_token = tokenizer.convert_ids_to_tokens(original_id)
 
         if predicted_token != original_token:
@@ -109,7 +109,7 @@ def run_augmentation_pipeline(cfg,ds):
     # ------------------------
     # Loop through languages and create DatasetDict
     # ------------------------
-    similarity_model = SentenceTransformer(cfg.experiments.component.augment.modelname)
+    similarity_model = SentenceTransformer(cfg.component.augment.modelname)
     augmented_datasets = DatasetDict()
 
     for lang in ["java", "pharo", "python"]:
@@ -126,7 +126,7 @@ def run_augmentation_pipeline(cfg,ds):
         
         # Generate augmented examples
         augmented_train = augment_language_multiple(train_ds, model,similarity_model, tokenizer, 
-                                                    x_augments=cfg.experiments.component.augment.auments)
+                                                    x_augments=cfg.component.augment.auments)
         
         # Add synthetic=True for augmented examples
         augmented_train = augmented_train.add_column("synthetic", [True] * len(augmented_train))

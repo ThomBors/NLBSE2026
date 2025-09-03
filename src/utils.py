@@ -9,6 +9,22 @@ def tokenize_function(examples,tokenizer):
         result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
     return result
 
+# def tokenize_function(batch, tokenizer):
+#     # batch["combo"] is a list of strings
+#     result = tokenizer(
+#         batch["combo"], 
+#         padding="max_length", 
+#         truncation=True,
+#         return_tensors=None  # Let datasets handle list outputs
+#     )
+    
+#     # word_ids only works for fast tokenizer and single encoding at a time
+#     if tokenizer.is_fast:
+#         # create word_ids for each sentence
+#         result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
+        
+#     return result
+
 def group_texts(examples,chunk_size = 64):
     # Concatenate all texts
     concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}

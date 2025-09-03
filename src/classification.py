@@ -19,13 +19,13 @@ labels = {
 
 def classifiers(cfg,ds):
     for lang in langs:
-        model = SetFitModel.from_pretrained(cfg.experiment.classifier.modelname, 
+        model = SetFitModel.from_pretrained(cfg.classifier.modelname, 
                                             multi_target_strategy="multi-output")
 
         args = TrainingArguments(
             num_epochs=5 if lang == 'java' else 10,
-            batch_size=cfg.experiment.classifier.batch_size,
-            num_iterations=cfg.experiment.classifier.num_iterations
+            batch_size=cfg.classifier.batch_size,
+            num_iterations=cfg.classifier.num_iterations
         )
 
         trainer = Trainer(
