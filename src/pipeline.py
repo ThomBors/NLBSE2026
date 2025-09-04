@@ -18,10 +18,10 @@ class pipeline:
         self.cfg = cfg
         self.langs = ['java', 'python', 'pharo']
         self.labels = {
-            'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-            'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-            'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
-        }
+                'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
+                'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
+                'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+            }
 
     def __call__(self):
         title()

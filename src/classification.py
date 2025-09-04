@@ -18,7 +18,7 @@ labels = {
 }
 
 def classifiers(cfg,ds):
-    print(ds)
+
     for lang in langs:
         model = SetFitModel.from_pretrained(cfg.component.classifier.modelname, 
                                             multi_target_strategy="multi-output")

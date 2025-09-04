@@ -113,15 +113,18 @@ def run_augmentation_pipeline(cfg,ds):
     # ------------------------
     # Loop through languages and create DatasetDict
     # ------------------------
-    similarity_model = SentenceTransformer(cfg.component.augment.modelname).setLevel(logging.ERROR)
+    logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+    similarity_model = SentenceTransformer(cfg.component.augment.modelname)
     augmented_datasets = DatasetDict()
 
+
+    
     for lang in tqdm(["java", "pharo", "python"], desc="Languages"):
-        
+
         if os.path.exists(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train") and os.path.isdir(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"):
             logging.info(f"Skipping Augmentation Pipeline for {lang}, data already exists at {f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"}")
             continue
-
+        
         model_name = f"{cfg.paths.res_dir}/models/{lang}-finetuned-ModernBert"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForMaskedLM.from_pretrained(model_name)
@@ -159,4 +162,4 @@ def run_augmentation_pipeline(cfg,ds):
         augmented_datasets[f"{lang}_train"] = combined_train
         augmented_datasets[f"{lang}_test"] = ds[f"{lang}_test"]  # keep original test
 
-    augmented_datasets.save_to_disk(f"{cfg.paths.data_dir}/augmented_datasets")
+        augmented_datasets.save_to_disk(f"{cfg.paths.data_dir}/augmented_datasets")
