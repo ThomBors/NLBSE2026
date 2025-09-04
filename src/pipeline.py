@@ -9,7 +9,8 @@ from src.utils import set_seed
 from src.finetune import createMLforWCft
 from src.augment import run_augmentation_pipeline
 from src.classification import classifiers
-from src.utils import filter_synthetic,title
+from src.utils import title
+from src.oversampling import oversampling
 from src.evaluation import evaluation
 
 class pipeline:
@@ -42,14 +43,9 @@ class pipeline:
         # --- Load new Augmentd Data --- #
         dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
 
-        # --- Set Syntetic Quality --- #
+        # --- Set Syntetic Quality and Number of Observation--- #
         SYNQ = cfg.trainer.SYNQ
-        for split_name in dsplus.keys():
-            if split_name.endswith("_train"):
-                dsplus[split_name] = dsplus[split_name].filter(
-                    filter_synthetic,
-                    fn_kwargs={"SyntheticQualityScore": SYNQ}
-                )
+        dsplus = oversampling(cfg,dsplus,SYNQ)
 
         # --- Code Commente Classification --- #
         classifiers(cfg,dsplus)

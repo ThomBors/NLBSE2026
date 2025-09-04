@@ -1,5 +1,6 @@
 from datasets import Dataset, DatasetDict, concatenate_datasets
 from datasets import Sequence, Value
+from omegaconf import OmegaConf
 import random
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 from sentence_transformers import SentenceTransformer, util
