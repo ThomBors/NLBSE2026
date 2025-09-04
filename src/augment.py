@@ -3,6 +3,7 @@ import random
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
+from tqdm import tqdm
 import torch
 import os
 import logging
@@ -112,10 +113,10 @@ def run_augmentation_pipeline(cfg,ds):
     # ------------------------
     # Loop through languages and create DatasetDict
     # ------------------------
-    similarity_model = SentenceTransformer(cfg.component.augment.modelname)
+    similarity_model = SentenceTransformer(cfg.component.augment.modelname).setLevel(logging.ERROR)
     augmented_datasets = DatasetDict()
 
-    for lang in ["java", "pharo", "python"]:
+    for lang in tqdm(["java", "pharo", "python"], desc="Languages"):
         
         if os.path.exists(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train") and os.path.isdir(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"):
             logging.info(f"Skipping Augmentation Pipeline for {lang}, data already exists at {f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"}")
@@ -144,6 +145,13 @@ def run_augmentation_pipeline(cfg,ds):
             augmented_train,
             features=train_ds.features  # enforces same schema
         )
+
+        if len(augmented_train) > 0:
+            augmented_train = Dataset.from_list(augmented_train, features=train_ds.features)
+            combined_train = concatenate_datasets([train_ds, augmented_train])
+        else:
+            combined_train = train_ds
+            logging.error('no augmented data')
 
         # Concatenate original + augmented datasets
         combined_train = concatenate_datasets([train_ds, augmented_train])

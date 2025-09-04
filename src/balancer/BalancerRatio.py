@@ -4,12 +4,10 @@ from collections import Counter
 
 
 class BalancerRatio:
-    def __init__(self,cfg):
-        self.target_ratio = cfg.component.balancer.target_ratio
-        self.tol = cfg.component.balancer.tol
+    def __init__(self,target_ratio,tol):
+        self.target_ratio = target_ratio
+        self.tol = tol
         self.max_iter = 10000
-        self.ds = ds
-        self.lang = lang
         self.langs = ['java', 'python', 'pharo']
         self.labels = {
             'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
@@ -90,4 +88,5 @@ class BalancerRatio:
     def __call__(self,ds,lang):
         self.ds = ds
         self.lang = lang
+        print('balancer')
         return self.balance_labels()

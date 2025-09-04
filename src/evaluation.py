@@ -34,6 +34,8 @@ def evaluation(cfg,ds,langs,labels,SYNQ):
             recall = tp / (tp + fn)
             f1 = (2*tp) / (2*tp + fp + fn)
             scores.append({'lan': lan, 'cat': labels[lan][i],'precision': precision,'recall': recall,'f1': f1, 'SYNQ': SYNQ})
-    logging.info("Compute in GFLOPs:", total_flops/10)
-    logging.info("Avg runtime in seconds:", total_time/10)
-    return pd.DataFrame(scores)
+    logging.info(f"Compute in GFLOPs: {total_flops/10}")
+    logging.info(f"Avg runtime in seconds: {total_time/10}")
+    compute = {"GFLOPs":total_flops/10,"runtime":total_time/10}
+    
+    return pd.DataFrame(scores),pd.DataFrame([compute])
