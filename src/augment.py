@@ -1,13 +1,11 @@
 from datasets import Dataset, DatasetDict, concatenate_datasets
-from datasets import Sequence, Value
-from omegaconf import OmegaConf
 import random
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
 import torch
-import math
-
+import os
+import logging
 
 
 def compute_similarity(similarity_model,original_sentence, new_sentence):
@@ -118,6 +116,11 @@ def run_augmentation_pipeline(cfg,ds):
     augmented_datasets = DatasetDict()
 
     for lang in ["java", "pharo", "python"]:
+        
+        if os.path.exists(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train") and os.path.isdir(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"):
+            logging.info(f"Skipping Augmentation Pipeline for {lang}, data already exists at {f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"}")
+            continue
+
         model_name = f"{cfg.paths.res_dir}/models/{lang}-finetuned-ModernBert"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForMaskedLM.from_pretrained(model_name)
