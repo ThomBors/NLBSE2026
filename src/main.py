@@ -14,6 +14,7 @@ def main(cfg: DictConfig):
     #save_path = get_save_path(cfg)
 
     OmegaConf.resolve(cfg)
+    print(cfg)
 
     base_cfg = OmegaConf.to_container(cfg, resolve=False)
     base_cfg = {"_target_": base_cfg.get("_target_")}

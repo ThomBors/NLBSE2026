@@ -2,5 +2,5 @@ modelname: "answerdotai/ModernBERT-base"
 batch_size: 64
 learning_rate: 2e-5
 weight_decay: 0.01
-
+epochs: 5
 mlm_probability: 0.15

@@ -11,6 +11,7 @@ defaults:
 
 seed: 42
 
+
 trainerHardwer:
   use_cuda: True
 

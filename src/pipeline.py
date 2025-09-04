@@ -43,10 +43,13 @@ class pipeline:
         dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
 
         # --- Set Syntetic Quality --- #
-        SYNQ = cfg.setfit.trainer.SYNQ
+        SYNQ = cfg.trainer.SYNQ
         for split_name in dsplus.keys():
             if split_name.endswith("_train"):
-                dsplus[split_name] = dsplus[split_name].filter(filter_synthetic(SYNQ))
+                dsplus[split_name] = dsplus[split_name].filter(
+                    filter_synthetic,
+                    fn_kwargs={"SyntheticQualityScore": SYNQ}
+                )
 
         # --- Code Commente Classification --- #
         classifiers(cfg,dsplus)

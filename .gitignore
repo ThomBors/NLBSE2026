@@ -144,9 +144,9 @@ dmypy.json
 *.tar
 *.tar.gz
 
-# sharpness related
+# synthetic data
 configs/local/default.yaml
-/datasets/
+/data/
 /logs/
 /checkpoints/
 /results/

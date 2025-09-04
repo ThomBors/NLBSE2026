@@ -6,6 +6,7 @@ from datasets import DatasetDict
 import math
 import torch
 import logging
+import os
 
 from src.utils import (group_texts)
 
@@ -47,15 +48,22 @@ def createMLforWCft(cfg,ds,langs,device):
                                                     mlm_probability=cfg.component.finetune.mlm_probability)
     
     for l in langs:
+        model_dir = f"{cfg.paths.res_dir}/models/{l}-finetuned-ModernBert"
+
+        if os.path.exists(model_dir) and os.path.isdir(model_dir):
+            logging.info(f"Skipping training for {l}, model already exists at {model_dir}")
+            continue
+
         logging_steps = len(lm_tvt_dataset[f'{l}_train']) // cfg.component.finetune.batch_size
         training_args = TrainingArguments(
-            output_dir=f"{cfg.paths.res_dir}/models/{l}-finetuned-ModernBert",
+            output_dir=model_dir,
             overwrite_output_dir=True,
             eval_strategy="epoch",
             save_strategy="no",
             logging_dir= f"{cfg.paths.log_dir}/models/logs",
             learning_rate=cfg.component.finetune.learning_rate,
             weight_decay=cfg.component.finetune.weight_decay,
+            num_train_epochs=cfg.component.finetune.epochs,
             per_device_train_batch_size=cfg.component.finetune.batch_size,
             per_device_eval_batch_size=cfg.component.finetune.batch_size,
             push_to_hub=False,
@@ -77,3 +85,5 @@ def createMLforWCft(cfg,ds,langs,device):
         trainer.train()
         eval_results = trainer.evaluate()
         logging.info(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
+        trainer.save_model(model_dir)
+        tokenizer.save_pretrained(model_dir)
