@@ -3,7 +3,8 @@ _target_: src.pipeline.pipeline
 defaults:
   - /component/augment: SyntheticData
   - /component/finetune: ModernBERT
-  - /component/classifier: setfit
+  - /component/classifier: SetFit
+  - /component/balancer: BalancerRatio
 
 trainer:
   SYNQ: 0.1

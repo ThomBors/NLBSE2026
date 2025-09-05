@@ -18,6 +18,7 @@ labels = {
 }
 
 def classifiers(cfg,ds):
+
     for lang in langs:
         model = SetFitModel.from_pretrained(cfg.component.classifier.modelname, 
                                             multi_target_strategy="multi-output")
@@ -37,4 +38,4 @@ def classifiers(cfg,ds):
         )
 
         trainer.train()
-        trainer.model.save_pretrained(f'{cfg.paths.res_dir}/models/{lang}-SetFit')
+        trainer.model.save_pretrained(f'{cfg.paths.res_dir}/models/{lang}-classifier-SetFit')

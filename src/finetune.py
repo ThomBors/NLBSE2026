@@ -27,10 +27,8 @@ def createMLforWCft(cfg,ds,langs,device):
     tokenized_datasets = ds.map(
         tokenize_function, batched=True, remove_columns=['index', 'class', 'comment_sentence', 'partition', 'combo', 'labels']
     )
-    print('tokenized_datasets')
 
     lm_datasets = tokenized_datasets.map(group_texts, batched=True)
-    print('lm_datasets')
 
     lm_tvt_dataset = DatasetDict()
     for l in langs:

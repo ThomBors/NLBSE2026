@@ -18,10 +18,10 @@ class pipeline:
         self.cfg = cfg
         self.langs = ['java', 'python', 'pharo']
         self.labels = {
-            'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-            'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-            'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
-        }
+                'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
+                'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
+                'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+            }
 
     def __call__(self):
         title()
@@ -51,12 +51,13 @@ class pipeline:
         classifiers(cfg,dsplus)
 
         # --- Test Pipeline --- #
-        scores = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
+        scores,compute = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
 
-        output_dir = f"{cfg.paths.res_dir}/performance"
+        output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
-        scores.to_csv(f"{output_dir}/scores{SYNQ}.csv", index=False)
+        scores.to_csv(f"{output_dir}/scores.csv", index=False)
+        compute.to_csv(f"{output_dir}/compute.csv", index=False)
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000
