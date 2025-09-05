@@ -1,10 +1,6 @@
-import logging
-
 import hydra
-from datasets import Dataset
-from dotenv import load_dotenv
-from omegaconf import DictConfig, OmegaConf
-from tqdm import trange
+from omegaconf import OmegaConf
+
 
 
 def filter_synthetic(example, SyntheticQualityScore):

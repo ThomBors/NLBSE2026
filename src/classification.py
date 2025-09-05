@@ -1,10 +1,4 @@
 # expects that the folder models exists
-import time
-
-import numpy as np
-import pandas as pd
-import torch
-from datasets import Dataset, DatasetDict, load_dataset
 from setfit import SetFitModel, Trainer, TrainingArguments
 from tqdm.auto import tqdm
 

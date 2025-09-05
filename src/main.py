@@ -1,5 +1,3 @@
-import logging
-
 import hydra
 import rootutils
 from omegaconf import DictConfig, OmegaConf
