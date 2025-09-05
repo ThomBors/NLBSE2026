@@ -36,7 +36,7 @@ flowchart LR
 
     %% Data flow
     Data --> Generator
-    Data --> Augment
+    Data -.-> Augment
     Generator --> Augment
     Augment --> Balancer
     Balancer --> Classifier
