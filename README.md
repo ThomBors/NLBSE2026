@@ -14,17 +14,17 @@
 
 [NLBSE tool competition 2026](https://nlbse2026.github.io/tools/) 
 
-The following figure depicts the application architecture in terms of components, data flows (solid links) and other dependencies (dotted links):
+The following figure depicts the application architecture in terms of components, data flows (solid links):
 
 ```mermaid
 flowchart LR
     Data(Data NLBSE2026):::compext
-    subgraph app [ynthetic Oversampling Pipeline]
-        Generator(ModenrBERT For Masked LM):::comp
-        Augment(SetFit For Sentence Symilarity):::comp
+    subgraph app [Synthetic Oversampling Pipeline]
+        Generator(ModenrBERT \n For Masked LM):::comp
+        Augment(SetFit \n For Sentence Symilarity):::comp
         Balancer(Oversampling strategy):::comp
-	Classifier(SetFit For Sentence Classification):::compext
     end
+    Classifier(SetFit For Sentence Classification):::compext
     Data --> Generator
     Data --> Augment
     Generator --> Augment
