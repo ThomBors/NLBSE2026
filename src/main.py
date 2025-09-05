@@ -1,17 +1,19 @@
+import logging
+
 import hydra
 import rootutils
-import logging
-from omegaconf import OmegaConf
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 from src.utils import set_logger
+
 set_logger()
+
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train")
 def main(cfg: DictConfig):
 
-    #save_path = get_save_path(cfg)
+    # save_path = get_save_path(cfg)
 
     OmegaConf.resolve(cfg)
 
@@ -27,7 +29,7 @@ def main(cfg: DictConfig):
     #     logging.info(f"Skipping training: stats already exist at {save_path}")
     #     return None
     return pipiliner()
-    
-    
+
+
 if __name__ == "__main__":
     main()
