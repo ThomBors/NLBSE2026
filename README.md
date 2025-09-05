@@ -8,7 +8,7 @@
   <img alt="Fine-tuned Model: HF" src="https://img.shields.io/badge/Model-Hugging%20Face-6f42c1?logo=huggingface&logoColor=white">
 </a>
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
-[![Conference](http://img.shields.io/badge/NLBSE-2026-4b44ce.svg)](https://nlbse2026.github.io/index.html)
+[![Conference](http://img.shields.io/badge/Conference-NLBSE2026-4b44ce.svg)](https://nlbse2026.github.io/index.html)
 [![license](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](https://github.com/ashleve/lightning-hydra-template#license)
 
 </div>
