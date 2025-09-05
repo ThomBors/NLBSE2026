@@ -4,12 +4,6 @@
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: Hydra" src="https://img.shields.io/badge/Config-Hydra-89b8cd"></a>
-<a href="https://huggingface.co/docs/transformers/index">
-  <img alt="Transformers: HF" src="https://img.shields.io/badge/Transformers-Hugging%20Face-FF6F61?logo=huggingface&logoColor=white">
-</a>
-<a href="https://huggingface.co/datasets">
-  <img alt="Datasets: HF" src="https://img.shields.io/badge/Datasets-Hugging%20Face-007FFF?logo=huggingface&logoColor=white">
-</a>
 <a href="https://huggingface.co/username/finetuned-model">
   <img alt="Fine-tuned Model: HF" src="https://img.shields.io/badge/Model-Hugging%20Face-6f42c1?logo=huggingface&logoColor=white">
 </a>
