@@ -24,12 +24,10 @@ flowchart LR
     %% Data source
     Data[Data: NLBSE2026]:::compext
 
-    %% Pipeline
-    subgraph Pipeline [Synthetic Oversampling Pipeline]
-        Generator[ModernBERT<br/>Masked LM]:::comp
-        Augment[SetFit<br/>Sentence Similarity]:::comp
-        Balancer[Oversampling Strategy]:::comp
-    end
+    %% Pipeline nodes (no subgraph)
+    Generator[ModernBERT<br/>Masked LM]:::comp
+    Augment[SetFit<br/>Sentence Similarity]:::comp
+    Balancer[Oversampling Strategy]:::comp
 
     %% Classifier
     Classifier[SetFit<br/>Sentence Classification]:::compext
@@ -42,14 +40,9 @@ flowchart LR
     Balancer --> Classifier
 
     %% Styles
-    classDef scope fill:#fff,stroke:#333,stroke-width:1px,stroke-dasharray:5 5,color:#444,font-size:10pt;
     classDef comp fill:#fafafa,stroke:#333,stroke-width:1.5px,font-size:10pt;
-    classDef compsub fill:#eee,stroke:#333,stroke-width:1.5px,font-size:10pt;
     classDef compext fill:#fff,stroke:#333,stroke-width:1.5px,font-size:10pt;
-    classDef none fill:#fff,stroke:#fff,stroke-width:0px,font-size:0pt;
 
-    %% Assign class to subgraph
-    class Pipeline scope
 ```
 
 ## Installation
