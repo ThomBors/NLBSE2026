@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import logging
 import torch
-
+import os
 
 from src.utils import set_seed
 from src.finetune import createMLforWCft
@@ -53,7 +53,10 @@ class pipeline:
         # --- Test Pipeline --- #
         scores = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
 
-        scores.to_csv(f"{cfg.paths.res_dir}/performance/scores{SYNQ}.csv", index=False)
+        output_dir = f"{cfg.paths.res_dir}/performance"
+        os.makedirs(output_dir, exist_ok=True)
+
+        scores.to_csv(f"{output_dir}/scores{SYNQ}.csv", index=False)
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000
