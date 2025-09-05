@@ -79,13 +79,13 @@ python src/main.py
 Run the Synthetic Oversampling Pipeline with chosen experiment configuration from [configs/experiment/](configs/experiment/)
 
 ```bash
-python src/train.py experiment=experiment_name.yaml
+python src/main.py experiment=experiment_name.yaml
 ```
 
 You can override any parameter from command line like this
 
 ```bash
-python src/train.py trainer.SYNQ=0.5 
+python src/main.py trainer.SYNQ=0.5 
 ```
 
 ## Project Structure
