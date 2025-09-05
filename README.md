@@ -17,20 +17,22 @@
 
 [NLBSE tool competition 2026](https://nlbse2026.github.io/tools/) 
 
-The following figure depicts the application architecture in terms of components, data flows (solid links):
+The following figure depicts the application architecture in terms of components and data flows (solid links):
 
 ```mermaid
 flowchart LR
     %% Data source
     Data[Data: NLBSE2026]:::compext
 
-    %% Pipeline nodes (no subgraph)
-    Generator[ModernBERT<br/>Masked LM]:::comp
-    Augment[SetFit<br/>Sentence Similarity]:::comp
-    Balancer[Oversampling Strategy]:::comp
+    %% Pipeline
+    subgraph Pipeline [Synthetic Oversampling Pipeline]
+        Generator[Generator<br/> ModernBERT]:::comp
+        Augment[Sentence Similarity<br/>SetFit]:::comp
+        Balancer[Oversampling <br/> Strategy]:::comp
+    end
 
     %% Classifier
-    Classifier[SetFit<br/>Sentence Classification]:::compext
+    Classifier[Sentence Classification <br/> SetFit]:::compext
 
     %% Data flow
     Data --> Generator
@@ -40,9 +42,14 @@ flowchart LR
     Balancer --> Classifier
 
     %% Styles
+    classDef scope fill:#fff,stroke:#333,stroke-width:1px,stroke-dasharray:5 5,color:#444,font-size:10pt;
     classDef comp fill:#fafafa,stroke:#333,stroke-width:1.5px,font-size:10pt;
+    classDef compsub fill:#eee,stroke:#333,stroke-width:1.5px,font-size:10pt;
     classDef compext fill:#fff,stroke:#333,stroke-width:1.5px,font-size:10pt;
+    classDef none fill:#fff,stroke:#fff,stroke-width:0px,font-size:0pt;
 
+    %% Assign class to subgraph
+    class Pipeline scope
 ```
 
 ## Installation
