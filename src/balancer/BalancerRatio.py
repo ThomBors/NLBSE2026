@@ -46,14 +46,13 @@ class BalancerRatio:
         - dict with final positive and negative counts
         """
         data = self._get_data(ds)
+        numeric_cols = [c for c in data.column_names if c.isdigit()]
         d = {}
-        for l in range(10):  # now '0','1','2',...
-            try:
-                # These are ints, safe to use in Counter
-                group = Counter(data[l])
-                d[l] = {"positive": group[1], "negative": group[0]}
-            except:
-                continue
+        for l in numeric_cols:
+            group = Counter(data[l])
+            d[l] = {"positive": group[1], "negative": group[0]}
+
+        print(d)
         
         labels = list(d.keys())
         added_pos = {l: 0 for l in labels}
