@@ -1,57 +1,73 @@
-from datasets import load_dataset,load_from_disk
-from pathlib import Path
-import pandas as pd
 import logging
-import torch
 import os
+import torch
+from datasets import load_dataset, load_from_disk
 
-from src.utils import set_seed
-from src.finetune import createMLforWCft
 from src.augment import run_augmentation_pipeline
 from src.classification import classifiers
-from src.utils import title
-from src.oversampling import oversampling
 from src.evaluation import evaluation
+from src.finetune import createMLforWCft
+from src.oversampling import oversampling
+from src.utils import set_seed, title
+
 
 class pipeline:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.langs = ['java', 'python', 'pharo']
+        self.langs = ["java", "python", "pharo"]
         self.labels = {
-                'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-                'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-                'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
-            }
+            "java": [
+                "summary",
+                "Ownership",
+                "Expand",
+                "usage",
+                "Pointer",
+                "deprecation",
+                "rational",
+            ],
+            "python": ["Usage", "Parameters", "DevelopmentNotes", "Expand", "Summary"],
+            "pharo": [
+                "Keyimplementationpoints",
+                "Example",
+                "Responsibilities",
+                "Intent",
+                "Keymessages",
+                "Collaborators",
+            ],
+        }
 
     def __call__(self):
         title()
         cfg = self.cfg
-        device = torch.device("cuda" if torch.cuda.is_available() and cfg.trainerHardwer.use_cuda else "cpu")
+        device = torch.device(
+            "cuda"
+            if torch.cuda.is_available() and cfg.trainerHardwer.use_cuda
+            else "cpu"
+        )
         logging.info(f"Device: {device}")
 
         set_seed(cfg.seed)
 
-        
-        ds = load_dataset('NLBSE/nlbse26-code-comment-classification')
+        ds = load_dataset("NLBSE/nlbse26-code-comment-classification")
 
         # --- fine tune ModernBERT for augmentation --- #
-        createMLforWCft(cfg,ds,self.langs,device)
+        createMLforWCft(cfg, ds, self.langs, device)
 
         # --- Synthetic Augmentation --- #
-        run_augmentation_pipeline(cfg,ds)
+        run_augmentation_pipeline(cfg, ds)
 
         # --- Load new Augmentd Data --- #
         dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
 
         # --- Set Syntetic Quality and Number of Observation--- #
         SYNQ = cfg.trainer.SYNQ
-        dsplus = oversampling(cfg,dsplus,SYNQ)
+        dsplus = oversampling(cfg, dsplus, SYNQ)
 
         # --- Code Commente Classification --- #
-        classifiers(cfg,dsplus)
+        classifiers(cfg, dsplus)
 
         # --- Test Pipeline --- #
-        scores,compute = evaluation(cfg,dsplus,self.langs,self.labels,SYNQ)
+        scores, compute = evaluation(cfg, dsplus, self.langs, self.labels, SYNQ)
 
         output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)

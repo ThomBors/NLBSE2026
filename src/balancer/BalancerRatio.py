@@ -2,19 +2,32 @@ import logging
 from collections import Counter
 
 
-
 class BalancerRatio:
-    def __init__(self,target_ratio,tol):
+    def __init__(self, target_ratio, tol):
         self.target_ratio = target_ratio
         self.tol = tol
         self.max_iter = 10000
-        self.langs = ['java', 'python', 'pharo']
+        self.langs = ["java", "python", "pharo"]
         self.labels = {
-                'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-                'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-                'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
-            }
- 
+            "java": [
+                "summary",
+                "Ownership",
+                "Expand",
+                "usage",
+                "Pointer",
+                "deprecation",
+                "rational",
+            ],
+            "python": ["Usage", "Parameters", "DevelopmentNotes", "Expand", "Summary"],
+            "pharo": [
+                "Keyimplementationpoints",
+                "Example",
+                "Responsibilities",
+                "Intent",
+                "Keymessages",
+                "Collaborators",
+            ],
+        }
 
     # def _split_list_into_columns(self,row, lang):
     #     values_list = row['labels']  # Replace 'values' with your actual column name
@@ -25,35 +38,36 @@ class BalancerRatio:
 
     #     return dict
     def _split_list_into_columns(self, row):
-        values_list = row['labels']  # e.g., [0,0,0,1,0]
+        values_list = row["labels"]  # e.g., [0,0,0,1,0]
         return {str(i): v for i, v in enumerate(values_list)}
 
-    
-    def _get_data(self,ds):
+    def _get_data(self, ds):
         return ds.map(lambda row: self._split_list_into_columns(row))
 
-    def balance_labels(self,ds):
+    def balance_labels(self, ds):
         """
         Balance positive instances per label to reach a target ratio with a tolerance.
-        
+
         Parameters:
         - d: dict of {label: {'positive': int, 'negative': int}}
         - target_ratio: desired positive/negative ratio
         - tol: allowed relative error (default 0.1 → 10%)
         - max_iter: maximum iterations to prevent infinite loops
-        
+
         Returns:
         - dict with final positive and negative counts
         """
         data = self._get_data(ds)
         numeric_cols = [c for c in data.column_names if c.isdigit()]
         d = {}
-        for l in numeric_cols:
-            group = Counter(data[l])
-            d[l] = {"positive": group[1], "negative": group[0]}
+        for l in range(10):  # now '0','1','2',...
+            try:
+                # These are ints, safe to use in Counter
+                group = Counter(data[l])
+                d[l] = {"positive": group[1], "negative": group[0]}
+            except:
+                continue
 
-        print(d)
-        
         labels = list(d.keys())
         added_pos = {l: 0 for l in labels}
         changed = True
@@ -64,11 +78,11 @@ class BalancerRatio:
             iteration += 1
 
             for l in labels:
-                P = d[l]['positive'] + added_pos[l]
-                N = d[l]['negative'] + sum(
+                P = d[l]["positive"] + added_pos[l]
+                N = d[l]["negative"] + sum(
                     added_pos[other] for other in labels if other != l
                 )
-                current_ratio = P / N if N > 0 else float('inf')
+                current_ratio = P / N if N > 0 else float("inf")
 
                 # Check against target with tolerance
                 if current_ratio < self.target_ratio * (1 - self.tol):
@@ -85,20 +99,20 @@ class BalancerRatio:
         result = {}
         resultL = []
         for l in labels:
-            final_pos = d[l]['positive'] + added_pos[l]
-            final_neg = d[l]['negative'] + sum(
+            final_pos = d[l]["positive"] + added_pos[l]
+            final_neg = d[l]["negative"] + sum(
                 added_pos[other] for other in labels if other != l
             )
             result[l] = {
-                'add': added_pos[l],
-                'positive': final_pos,
-                'negative': final_neg
+                "add": added_pos[l],
+                "positive": final_pos,
+                "negative": final_neg,
             }
             resultL.append(added_pos[l])
 
         logging.info(result)
 
         return resultL
-        
-    def __call__(self,ds,lang):
+
+    def __call__(self, ds, lang):
         return self.balance_labels(ds)
