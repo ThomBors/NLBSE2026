@@ -58,6 +58,7 @@ class BalancerRatio:
         - dict with final positive and negative counts
         """
         data = self._get_data(ds)
+        numeric_cols = [c for c in data.column_names if c.isdigit()]
         d = {}
         for l in range(10):  # now '0','1','2',...
             try:
