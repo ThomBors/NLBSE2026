@@ -2,7 +2,7 @@ import logging
 import os
 import torch
 from datasets import load_dataset, load_from_disk
-
+import gc
 from src.augment import run_augmentation_pipeline
 from src.classification import classifiers
 from src.evaluation import evaluation
@@ -52,9 +52,11 @@ class pipeline:
 
         # --- fine tune ModernBERT for augmentation --- #
         createMLforWCft(cfg, ds, self.langs, device)
+        self.cleanup()
 
         # --- Synthetic Augmentation --- #
         run_augmentation_pipeline(cfg, ds)
+        self.cleanup()
 
         # --- Load new Augmentd Data --- #
         dsplus = load_from_disk(f"{cfg.paths.data_dir}/augmented_datasets")
@@ -65,6 +67,7 @@ class pipeline:
 
         # --- Code Commente Classification --- #
         classifiers(cfg, dsplus)
+        self.cleanup()
 
         # --- Test Pipeline --- #
         scores, compute = evaluation(cfg, dsplus, self.langs, self.labels, SYNQ)
@@ -88,3 +91,16 @@ class pipeline:
         # avg_flops = total_flops/10
 
         # round(score(avg_f1, avg_runtime, avg_flops), 2)
+
+
+    def cleanup(self):
+
+        # Free CUDA memory
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+
+        # Clear any remaining references
+        gc.collect()
+
+        
