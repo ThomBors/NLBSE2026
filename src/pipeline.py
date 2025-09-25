@@ -8,7 +8,7 @@ from src.classification import classifiers
 from src.evaluation import evaluation
 from src.finetune import createMLforWCft
 from src.oversampling import oversampling
-from src.utils import set_seed, title
+from src.utils import set_seed, title, generate_label_statistics
 
 
 class pipeline:
@@ -65,6 +65,10 @@ class pipeline:
         SYNQ = cfg.trainer.SYNQ
         dsplus,report = oversampling(cfg, dsplus, SYNQ)
 
+        # --- Report Syntetic Quality and Number of Observation--- #
+        generate_label_statistics(dsplus,f"{output_dir}/oversampling_report_complete.csv")
+        report.to_csv(f"{output_dir}/oversampling_report_minimal.csv", index=False)
+
         # --- Code Commente Classification --- #
         classifiers(cfg, dsplus)
         self.cleanup()
@@ -77,7 +81,7 @@ class pipeline:
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)
         compute.to_csv(f"{output_dir}/compute.csv", index=False)        
-        report.to_csv(f"{output_dir}/oversampling_report.csv", index=False)
+        
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000

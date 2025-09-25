@@ -22,12 +22,13 @@ def select_top_synthetic(ds, SYNQ, label=None, top_k=1):
     if label is not None:
         filtered = filtered.filter(lambda ex: ex["labels"] == label)
 
-    # Sort by similarity_score descending
+    # Sort by similarity_score increasing (lower similarity first)
     sorted_indices = sorted(
         range(len(filtered)),
         key=lambda i: filtered[i]["similarity_score"],
-        reverse=True,
+        reverse=False,
     )
+
 
     # Select top_k
     return filtered.select(sorted_indices[:top_k])

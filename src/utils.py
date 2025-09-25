@@ -1,6 +1,8 @@
 import logging
 import random
 
+import pandas as pd
+from datasets import concatenate_datasets
 import numpy as np
 import torch
 
@@ -93,3 +95,81 @@ def title():
                                                                           
     """
     )
+
+
+
+def labels_and_synthetic_csv(data, lang, labels, report_rows):
+    for label in labels[lang]:
+        # 2x2 counters
+        counts = {
+            "synthetic_pos": 0,
+            "synthetic_neg": 0,
+            "real_pos": 0,
+            "real_neg": 0,
+        }
+        similarity_scores = []
+
+        for d in data:
+            if d["synthetic"]:
+                similarity_scores.append(d.get("similarity_score", 0))
+                if d[label] == 1:
+                    counts["synthetic_pos"] += 1
+                else:
+                    counts["synthetic_neg"] += 1
+            else:
+                if d[label] == 1:
+                    counts["real_pos"] += 1
+                else:
+                    counts["real_neg"] += 1
+
+        total_pos = counts["synthetic_pos"] + counts["real_pos"]
+        total_neg = counts["synthetic_neg"] + counts["real_neg"]
+        total = total_pos + total_neg
+
+        mean_similarity = pd.NA
+        sd_similarity = pd.NA
+        if similarity_scores:
+            mean_similarity = sum(similarity_scores) / len(similarity_scores)
+            sd_similarity = pd.Series(similarity_scores).std()
+
+        report_rows.append({
+            "language": lang,
+            "label": label,
+            "num_positive": total_pos,
+            "num_negative": total_neg,
+            "num_synthetic_positive": counts["synthetic_pos"],
+            "num_synthetic_negative": counts["synthetic_neg"],
+            "num_real_positive": counts["real_pos"],
+            "num_real_negative": counts["real_neg"],
+            "mean_similarity_synthetic": mean_similarity,
+            "sd_similarity_synthetic": sd_similarity
+        })
+
+
+def generate_label_statistics(ds, output_csv_path="label_statistics.csv"):
+    """
+    Generate per-label statistics for oversampled dataset and save to CSV.
+    """
+    langs = ['java', 'python', 'pharo']
+    labels = {
+        'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
+        'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
+        'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+    }
+
+    report_rows = []
+
+    # Convert dataset labels into dicts for easier access
+    for lang in langs:
+        ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(
+            lambda row: {key: row['labels'][labels[lang].index(key)] for key in labels[lang]} | {"synthetic": row["synthetic"], "similarity_score": row.get("similarity_score", None)}
+        )
+        labels_and_synthetic_csv(ds_split, lang, labels, report_rows)
+
+    # Create DataFrame and save CSV
+    report_df = pd.DataFrame(report_rows)
+    report_df.to_csv(output_csv_path, index=False)
+    print(f"Label statistics CSV saved to {output_csv_path}")
+
+    return report_df
+
