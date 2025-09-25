@@ -12,7 +12,7 @@ trainer:
 
 component:
   augment:
-    augments: 1
+    augments: 5
     ntop: 10
 
   finetune:

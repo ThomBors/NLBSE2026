@@ -144,7 +144,7 @@ def run_augmentation_pipeline(cfg, ds):
             f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"
         ) and os.path.isdir(f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"):
             logging.info(
-                f"Skipping Augmentation Pipeline for {lang}, data already exists at {f"{cfg.paths.data_dir}/augmented_datasets/{lang}_train"}"
+                f"Skipping Augmentation Pipeline for {lang}, data already exists at {cfg.paths.data_dir}/augmented_datasets/{lang}_train"
             )
             continue
 
