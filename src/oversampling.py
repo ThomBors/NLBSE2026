@@ -1,4 +1,5 @@
 import hydra
+import pandas as pd
 from omegaconf import OmegaConf
 
 
@@ -32,37 +33,45 @@ def select_top_synthetic(ds, SYNQ, label=None, top_k=1):
     return filtered.select(sorted_indices[:top_k])
 
 
-def oversample_top_per_label(ds, SYNQ, X_augment):
+def oversample_top_per_label(ds, SYNQ, X_augment, report_dict):
     """
-    Oversample top synthetic examples per label automatically inferred
-    from X_augment length.
+    Oversample top synthetic examples per label and record counts.
     """
     num_labels = len(X_augment)
     top_examples_all = []
 
     for idx, n in enumerate(X_augment):
         if n > 0:
-            # Create a one-hot label vector with 1 at idx
             label = [0] * num_labels
             label[idx] = 1
             top_examples = select_top_synthetic(ds, SYNQ, label=label, top_k=n)
             if len(top_examples) > 0:
                 top_examples_all.append(top_examples)
+                report_dict[idx] = report_dict.get(idx, 0) + len(top_examples)
 
     if top_examples_all:
         ds = ds.concatenate(top_examples_all)
 
-    return ds
+    return ds, report_dict
 
 
 def oversampling(cfg, ds, SYNQ):
-    # Compute number of samples per label
     balancer_cfg = OmegaConf.to_container(cfg.component.balancer, resolve=True)
     Balancer = hydra.utils.instantiate(OmegaConf.create(balancer_cfg))
+
+    # Dictionary to store class -> number of added samples
+    report_dict = {}
 
     for split_name in ds.keys():
         if split_name.endswith("_train"):
             X_augment = Balancer(ds, split_name.replace("_train", ""))
-            ds[split_name] = oversample_top_per_label(ds[split_name], SYNQ, X_augment)
+            ds[split_name], report_dict = oversample_top_per_label(
+                ds[split_name], SYNQ, X_augment, report_dict
+            )
 
-    return ds
+    report_df = pd.DataFrame([
+        {"class_index": class_idx, "num_added_samples": count}
+        for class_idx, count in report_dict.items()
+    ])
+
+    return ds,report_df

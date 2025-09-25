@@ -63,7 +63,7 @@ class pipeline:
 
         # --- Set Syntetic Quality and Number of Observation--- #
         SYNQ = cfg.trainer.SYNQ
-        dsplus = oversampling(cfg, dsplus, SYNQ)
+        dsplus,report = oversampling(cfg, dsplus, SYNQ)
 
         # --- Code Commente Classification --- #
         classifiers(cfg, dsplus)
@@ -76,7 +76,8 @@ class pipeline:
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)
-        compute.to_csv(f"{output_dir}/compute.csv", index=False)
+        compute.to_csv(f"{output_dir}/compute.csv", index=False)        
+        report.to_csv(f"{output_dir}/oversampling_report.csv", index=False)
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000

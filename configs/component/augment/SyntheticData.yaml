@@ -1,3 +1,3 @@
 modelname: "all-MiniLM-L6-v2"
-augments: 1
+augments: 5
 topn: 10
