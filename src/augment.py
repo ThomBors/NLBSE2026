@@ -15,6 +15,8 @@ def compute_similarity(similarity_model, original_sentence, new_sentence):
         [original_sentence, new_sentence], convert_to_tensor=True
     )
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
+    # Normalize to [0,1] if requested
+    score = (score + 1) / 2 
     return score
 
 
@@ -112,6 +114,7 @@ def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments
                 "combo": sent,
                 "labels": example["labels"],
                 "similarity_score": score,
+                "synthetic": True,
             }
         )
     return augmented_list
@@ -156,7 +159,7 @@ def run_augmentation_pipeline(cfg, ds):
         train_ds = ds[f"{lang}_train"]
 
         # Add similarity_score (NaN) and synthetic (False) columns for original data
-        train_ds = train_ds.add_column("similarity_score", [1] * len(train_ds))
+        train_ds = train_ds.add_column("similarity_score", [1.0] * len(train_ds))
         train_ds = train_ds.add_column("synthetic", [False] * len(train_ds))
 
         # Generate augmented examples
@@ -167,16 +170,6 @@ def run_augmentation_pipeline(cfg, ds):
             similarity_model,
             tokenizer,
             x_augments=cfg.component.augment.augments,
-        )
-
-        # Add synthetic=True for augmented examples
-        augmented_train = augmented_train.add_column(
-            "synthetic", [True] * len(augmented_train)
-        )
-
-        # When creating augmented dataset
-        augmented_train = Dataset.from_list(
-            augmented_train, features=train_ds.features  # enforces same schema
         )
 
         if len(augmented_train) > 0:
