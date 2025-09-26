@@ -66,6 +66,9 @@ class pipeline:
         dsplus,report = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
+        output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
+        os.makedirs(output_dir, exist_ok=True)
+
         generate_label_statistics(dsplus,f"{output_dir}/oversampling_report_complete.csv")
         report.to_csv(f"{output_dir}/oversampling_report_minimal.csv", index=False)
 
