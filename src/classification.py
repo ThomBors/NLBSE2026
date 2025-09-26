@@ -1,7 +1,7 @@
 # expects that the folder models exists
 from setfit import SetFitModel, Trainer, TrainingArguments
 from tqdm.auto import tqdm
-
+import os
 tqdm.pandas()
 
 
@@ -35,7 +35,11 @@ def classifiers(cfg, ds):
             cfg.component.classifier.modelname, multi_target_strategy="multi-output"
         )
 
+        output_dir = f"{cfg.paths.res_dir}/models/{lang}-classifier-SetFit"
+        os.makedirs(output_dir, exist_ok=True)
+
         args = TrainingArguments(
+            output_dir=output_dir,
             num_epochs=5 if lang == "java" else 10,
             batch_size=cfg.component.classifier.batch_size,
             num_iterations=cfg.component.classifier.num_iterations,
@@ -51,5 +55,5 @@ def classifiers(cfg, ds):
 
         trainer.train()
         trainer.model.save_pretrained(
-            f"{cfg.paths.res_dir}/models/{lang}-classifier-SetFit"
+            output_dir
         )
