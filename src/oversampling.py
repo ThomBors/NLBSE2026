@@ -9,7 +9,7 @@ def filter_synthetic(example, SyntheticQualityScore):
     if example["synthetic"] == False:
         return True
     elif example["synthetic"] == True and example["similarity_score"] is not None:
-        return example["similarity_score"] > SyntheticQualityScore
+        return example["similarity_score"] <= SyntheticQualityScore
     return False
 
 
