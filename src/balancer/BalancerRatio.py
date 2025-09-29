@@ -60,7 +60,7 @@ class BalancerRatio:
         data = self._get_data(ds)
         numeric_cols = [c for c in data.column_names if c.isdigit()]
         d = {}
-        for l in range(10):  # now '0','1','2',...
+        for l in range(20):  # now '0','1','2',...
             try:
                 # These are ints, safe to use in Counter
                 group = Counter(data[l])
