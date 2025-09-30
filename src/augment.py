@@ -70,10 +70,10 @@ def predict_masked_token_topn(model, tokenizer, input_ids, mask_idx, n=10):
     return predicted_id, predicted_token
 
 
-def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments=1):
+def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments=5):
     generated_sentences = set()
     attempts = 0
-    max_attempts = x_augments * 3
+    max_attempts = x_augments * 30
 
     while len(generated_sentences) < x_augments and attempts < max_attempts:
         attempts += 1
@@ -121,7 +121,7 @@ def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments
 
 
 def augment_language_multiple(
-    cfg, ds_lang, model, similarity_model, tokenizer, x_augments=1
+    cfg, ds_lang, model, similarity_model, tokenizer, x_augments=5
 ):
     augmented_examples = []
     for example in ds_lang:

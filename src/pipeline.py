@@ -73,7 +73,7 @@ class pipeline:
         report.to_csv(f"{output_dir}/oversampling_report_minimal.csv", index=False)
 
         # --- Code Commente Classification --- #
-        classifiers(cfg, dsplus)
+        classifiers(cfg, dsplus,SYNQ)
         self.cleanup()
 
         # --- Test Pipeline --- #
