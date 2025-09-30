@@ -8,7 +8,7 @@ from datasets import concatenate_datasets
 def filter_synthetic(example, SyntheticQualityScore):
     # Keep original rows OR augmented rows with similarity_score > SYNQ
     if example["synthetic"] == False:
-        return True
+        return False
     elif example["synthetic"] == True and example["similarity_score"] is not None:
         return example["similarity_score"] <= SyntheticQualityScore
     return False
@@ -56,6 +56,12 @@ def oversample_top_per_label(ds, SYNQ, X_augment):
 
     return ds
 
+def oversample_per_obser(ds, SYNQ):
+    """
+    Oversample all synthetic observations <= SYNQ.
+    """
+    filtered = ds.filter(filter_synthetic, fn_kwargs={"SyntheticQualityScore": SYNQ})
+    return filtered
 
 def oversampling(cfg, ds, SYNQ):
     balancer_cfg = OmegaConf.to_container(cfg.component.balancer, resolve=True)
@@ -68,8 +74,13 @@ def oversampling(cfg, ds, SYNQ):
         if split_name.endswith("_train"):
             X_augment = Balancer(ds, split_name)
             logging.info(f'Augmentation numbers: {X_augment}')
-            ds[split_name] = oversample_top_per_label(
-                ds[split_name], SYNQ, X_augment
-            )
+            if X_augment:
+                ds[split_name] = oversample_top_per_label(
+                    ds[split_name], SYNQ, X_augment
+                )
+            else:
+                ds[split_name] = oversample_per_obser(
+                    ds[split_name], SYNQ
+                )
 
     return ds
