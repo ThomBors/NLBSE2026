@@ -66,7 +66,7 @@ def oversampling(cfg, ds, SYNQ):
 
     for split_name in ds.keys():
         if split_name.endswith("_train"):
-            X_augment = Balancer(ds, split_name.replace("_train", ""))
+            X_augment = Balancer(ds, split_name)
             logging.info(f'Augmentation numbers: {X_augment}')
             ds[split_name], report_dict = oversample_top_per_label(
                 ds[split_name], SYNQ, X_augment, report_dict
