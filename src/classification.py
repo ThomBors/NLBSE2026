@@ -28,14 +28,14 @@ labels = {
 }
 
 
-def classifiers(cfg, ds):
+def classifiers(cfg, ds,SYNQ):
 
     for lang in langs:
         model = SetFitModel.from_pretrained(
             cfg.component.classifier.modelname, multi_target_strategy="multi-output"
         )
 
-        output_dir = f"{cfg.paths.res_dir}/models/{lang}-classifier-SetFit"
+        output_dir = f"{cfg.paths.res_dir}/models/{lang}-classifier-SetFit/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         args = TrainingArguments(
