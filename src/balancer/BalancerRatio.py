@@ -72,6 +72,9 @@ class BalancerRatio:
         added_pos = {l: 0 for l in labels}
         changed = True
         iteration = 0
+        
+        if self.target_ratio is None:
+            self.target_ratio = 1 / len(labels)
 
         while changed and iteration < self.max_iter:
             changed = False
