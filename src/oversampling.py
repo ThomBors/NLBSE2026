@@ -2,7 +2,7 @@ import hydra
 import pandas as pd
 import logging
 from omegaconf import OmegaConf
-
+from datasets import concatenate_datasets
 
 
 def filter_synthetic(example, SyntheticQualityScore):
@@ -52,7 +52,8 @@ def oversample_top_per_label(ds, SYNQ, X_augment, report_dict):
                 report_dict[idx] = report_dict.get(idx, 0) + len(top_examples)
 
     if top_examples_all:
-        ds = ds.concatenate(top_examples_all)
+        #ds = ds.concatenate(top_examples_all)
+        ds = concatenate_datasets([ds] + top_examples_all)
 
     return ds, report_dict
 
