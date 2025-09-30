@@ -35,7 +35,7 @@ def select_top_synthetic(ds, SYNQ, label=None, top_k=1):
     return filtered.select(sorted_indices[:top_k])
 
 
-def oversample_top_per_label(ds, SYNQ, X_augment, report_dict):
+def oversample_top_per_label(ds, SYNQ, X_augment):
     """
     Oversample top synthetic examples per label and record counts.
     """
@@ -49,13 +49,12 @@ def oversample_top_per_label(ds, SYNQ, X_augment, report_dict):
             top_examples = select_top_synthetic(ds, SYNQ, label=label, top_k=n)
             if len(top_examples) > 0:
                 top_examples_all.append(top_examples)
-                report_dict[idx] = report_dict.get(idx, 0) + len(top_examples)
 
     if top_examples_all:
         #ds = ds.concatenate(top_examples_all)
         ds = concatenate_datasets([ds] + top_examples_all)
 
-    return ds, report_dict
+    return ds
 
 
 def oversampling(cfg, ds, SYNQ):
@@ -63,19 +62,14 @@ def oversampling(cfg, ds, SYNQ):
     Balancer = hydra.utils.instantiate(OmegaConf.create(balancer_cfg))
 
     # Dictionary to store class -> number of added samples
-    report_dict = {}
+    
 
     for split_name in ds.keys():
         if split_name.endswith("_train"):
             X_augment = Balancer(ds, split_name)
             logging.info(f'Augmentation numbers: {X_augment}')
-            ds[split_name], report_dict = oversample_top_per_label(
-                ds[split_name], SYNQ, X_augment, report_dict
+            ds[split_name] = oversample_top_per_label(
+                ds[split_name], SYNQ, X_augment
             )
 
-    report_df = pd.DataFrame([
-        {"class_index": class_idx, "num_added_samples": count}
-        for class_idx, count in report_dict.items()
-    ])
-
-    return ds,report_df
+    return ds
