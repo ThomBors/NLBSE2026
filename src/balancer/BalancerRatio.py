@@ -60,7 +60,7 @@ class BalancerRatio:
         data = self._get_data(ds)
         numeric_cols = [c for c in data.column_names if c.isdigit()]
         d = {}
-        for l in range(20):  # now '0','1','2',...
+        for l in numeric_cols:  # now '0','1','2',...
             try:
                 # These are ints, safe to use in Counter
                 group = Counter(data[l])
@@ -118,4 +118,4 @@ class BalancerRatio:
         return resultL
 
     def __call__(self, ds, lang):
-        return self.balance_labels(ds)
+        return self.balance_labels(ds[lang])
