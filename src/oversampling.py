@@ -6,11 +6,14 @@ from datasets import concatenate_datasets
 
 
 def filter_synthetic(example, SyntheticQualityScore):
-    # Keep original rows OR augmented rows with similarity_score > SYNQ
-    if example["synthetic"] == False:
+    """
+    Keep original rows or synthetic rows with similarity_score > SyntheticQualityScore.
+    """
+    if not example.get("synthetic", False):
         return True
-    elif example["synthetic"] == True and example["similarity_score"] is not None:
-        return example["similarity_score"] > SyntheticQualityScore
+    similarity_score = example.get("similarity_score")
+    if similarity_score is not None:
+        return similarity_score > SyntheticQualityScore
     return False
 
 
