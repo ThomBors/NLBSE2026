@@ -1,7 +1,7 @@
 import logging
 import os
 import random
-
+import time
 import numpy as np
 import torch
 from datasets import Dataset, DatasetDict, concatenate_datasets
@@ -129,15 +129,51 @@ def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments
 
 
 def augment_language_multiple(
-    cfg, ds_lang, model, similarity_model, tokenizer, x_augments=5
+    cfg, ds_lang, model, similarity_model, tokenizer, x_augments=5, verbose=False
 ):
+    """
+    Augment a dataset with multiple language-based augmentations.
+
+    Args:
+        cfg: Config object with augmentation parameters.
+        ds_lang: Dataset or iterable of examples.
+        model: Augmentation model.
+        similarity_model: Model used to filter or score augmentations.
+        tokenizer: Tokenizer for preprocessing.
+        x_augments (int): Number of augmentations per example.
+        verbose (bool): Whether to log per-example details.
+
+    Returns:
+        Dataset: HuggingFace Dataset with augmented examples.
+    """
+    logging.info(
+        f"Starting augmentation on {len(ds_lang)} examples with x_augments={x_augments}"
+    )
+    start_time = time.time()
+
     augmented_examples = []
-    for example in ds_lang:
-        augmented_examples.extend(
-            augment_example(
+    for idx, example in enumerate(tqdm(ds_lang, desc="Augmenting")):
+        try:
+            new_examples = augment_example(
                 cfg, example, model, similarity_model, tokenizer, x_augments=x_augments
             )
-        )
+            if not new_examples:
+                logging.warning(f"No augmentations produced for example {idx}")
+            augmented_examples.extend(new_examples)
+
+            if verbose and idx % 50 == 0:  # log every 50 examples
+                logging.debug(
+                    f"Example {idx}: produced {len(new_examples)} augmentations"
+                )
+        except Exception as e:
+            logging.error(f"Error augmenting example {idx}: {e}", exc_info=True)
+
+    elapsed = time.time() - start_time
+    logging.info(
+        f"Completed augmentation: {len(augmented_examples)} augmented examples "
+        f"from {len(ds_lang)} original examples in {elapsed:.2f}s"
+    )
+
     return Dataset.from_list(augmented_examples)
 
 
