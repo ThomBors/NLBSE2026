@@ -69,7 +69,7 @@ def predict_masked_token_topn(model, tokenizer, input_ids, mask_idx, n=10):
 
     return predicted_id, predicted_token
 
-def is_too_similar(a, b, threshold=0.9):
+def is_too_similar(a, b, threshold=0.99):
     """
     Returns True if a and b are too similar (normalized).
     threshold=0.9 means 90% similar -> considered duplicate
@@ -79,7 +79,7 @@ def is_too_similar(a, b, threshold=0.9):
 def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments=5):
     generated_sentences = set()
     attempts = 0
-    max_attempts = x_augments * 30
+    max_attempts = x_augments * 3
 
     while len(generated_sentences) < x_augments and attempts < max_attempts:
         attempts += 1
