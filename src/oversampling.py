@@ -7,14 +7,12 @@ from datasets import concatenate_datasets
 
 def filter_synthetic(example, SyntheticQualityScore):
     """
-    Keep original rows or synthetic rows with similarity_score > SyntheticQualityScore.
+    Keep all rows with similarity_score > threshold.
+    If similarity_score is missing, treat it as 0 (filtered out).
     """
     if not example.get("synthetic", False):
-        return True
-    similarity_score = example.get("similarity_score")
-    if similarity_score is not None:
-        return similarity_score > SyntheticQualityScore
-    return False
+        return True  # keep all real data
+    return example.get("similarity_score", 0) > SyntheticQualityScore
 
 
 def select_top_synthetic(ds, SYNQ, label=None, top_k=1):

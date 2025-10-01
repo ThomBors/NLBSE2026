@@ -111,8 +111,8 @@ def labels_and_synthetic_csv(data, lang, labels, report_rows):
 
         for d in data:
             if d["synthetic"]:
-                similarity_scores.append(d.get("similarity_score", 0))
                 if d[label] == 1:
+                    similarity_scores.append(d.get("similarity_score", 0))
                     counts["synthetic_pos"] += 1
                 else:
                     counts["synthetic_neg"] += 1
@@ -145,6 +145,19 @@ def labels_and_synthetic_csv(data, lang, labels, report_rows):
             "sd_similarity_synthetic": sd_similarity
         })
 
+def split_list_into_columns(row, lang):
+    labels = {
+        'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
+        'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
+        'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+    }
+    values_list = row['labels']  # Replace 'values' with your actual column name
+    dict = {}
+    for key in labels[lang]:
+        
+        dict[key] = values_list[labels[lang].index(key)]
+
+    return dict
 
 def generate_label_statistics(ds, output_csv_path="label_statistics.csv"):
     """
@@ -161,9 +174,7 @@ def generate_label_statistics(ds, output_csv_path="label_statistics.csv"):
 
     # Convert dataset labels into dicts for easier access
     for lang in langs:
-        ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(
-            lambda row: {key: row['labels'][labels[lang].index(key)] for key in labels[lang]} | {"synthetic": row["synthetic"], "similarity_score": row.get("similarity_score", None)}
-        )
+        ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(lambda row: split_list_into_columns(row, lang))
         labels_and_synthetic_csv(ds_split, lang, labels, report_rows)
 
     # Create DataFrame and save CSV

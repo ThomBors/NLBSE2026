@@ -63,16 +63,16 @@ class pipeline:
 
         # --- Set Syntetic Quality and Number of Observation--- #
         SYNQ = cfg.trainer.SYNQ
-        dsplusO = oversampling(cfg, dsplus, SYNQ)
+        dsplus = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
         output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
-        generate_label_statistics(dsplusO,f"{output_dir}/oversampling_report_complete.csv")
+        generate_label_statistics(dsplus,f"{output_dir}/oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
-        classifiers(cfg, dsplusO,SYNQ)
+        classifiers(cfg, dsplus,SYNQ)
         self.cleanup()
 
         # --- Test Pipeline --- #
