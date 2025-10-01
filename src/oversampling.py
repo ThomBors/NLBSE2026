@@ -8,7 +8,7 @@ from datasets import concatenate_datasets
 def filter_synthetic(example, SyntheticQualityScore):
     # Keep original rows OR augmented rows with similarity_score > SYNQ
     if example["synthetic"] == False:
-        return False
+        return True
     elif example["synthetic"] == True and example["similarity_score"] is not None:
         return example["similarity_score"] <= SyntheticQualityScore
     return False
