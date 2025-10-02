@@ -41,13 +41,15 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
         top_idx = np.argsort(scores)[:n_samples]
         selected_examples.extend(label_ds.select(top_idx))
 
-    # keep all real
-    real_ds = split_ds.filter(lambda x: not x["synthetic"])
-
+    # keep all real and high quelity data
+    real_ds = split_ds.filter(
+        lambda x: (not x["synthetic"]) or x["similarity_score"] > 0.99
+    )
+    
     # build augmented dataset
     if selected_examples:
-        aug_ds = Dataset.from_list([ex for ex in selected_examples])
-        return real_ds.concatenate_datasets(aug_ds)
+        aug_ds = Dataset.from_list(selected_examples, features=split_ds.features)
+        return concatenate_datasets([real_ds,aug_ds])
     else:
         return real_ds
     
