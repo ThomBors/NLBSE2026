@@ -69,7 +69,7 @@ class pipeline:
         output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
-        generate_label_statistics(dsplus,f"{output_dir}/oversampling_report_complete.csv")
+        generate_label_statistics(dsplus,SYNQ,f"{output_dir}/oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
         classifiers(cfg, dsplus,SYNQ)

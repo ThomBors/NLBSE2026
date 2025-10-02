@@ -98,7 +98,7 @@ def title():
 
 
 
-def labels_and_synthetic_csv(data, lang, labels, report_rows):
+def labels_and_synthetic_csv(data, lang, labels,SYNQ, report_rows):
     for label in labels[lang]:
         # 2x2 counters
         counts = {
@@ -142,7 +142,8 @@ def labels_and_synthetic_csv(data, lang, labels, report_rows):
             "num_real_positive": counts["real_pos"],
             "num_real_negative": counts["real_neg"],
             "mean_similarity_synthetic": mean_similarity,
-            "sd_similarity_synthetic": sd_similarity
+            "sd_similarity_synthetic": sd_similarity,
+            "SYNQ": SYNQ
         })
 
 def split_list_into_columns(row, lang):
@@ -159,7 +160,7 @@ def split_list_into_columns(row, lang):
 
     return dict
 
-def generate_label_statistics(ds, output_csv_path="label_statistics.csv"):
+def generate_label_statistics(ds,SYNQ, output_csv_path="label_statistics.csv"):
     """
     Generate per-label statistics for oversampled dataset and save to CSV.
     """
@@ -175,7 +176,7 @@ def generate_label_statistics(ds, output_csv_path="label_statistics.csv"):
     # Convert dataset labels into dicts for easier access
     for lang in langs:
         ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(lambda row: split_list_into_columns(row, lang))
-        labels_and_synthetic_csv(ds_split, lang, labels, report_rows)
+        labels_and_synthetic_csv(ds_split, lang, labels,SYNQ, report_rows)
 
     # Create DataFrame and save CSV
     report_df = pd.DataFrame(report_rows)
