@@ -11,7 +11,7 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
     
     Args:
         split_ds (Dataset): HuggingFace dataset with fields:
-            - "label" (list[int]): one-hot or multi-label encoding
+            - "labels" (list[int]): one-hot or multi-label encoding
             - "synthetic" (bool)
             - "similarity_score" (float)
         SYNQ (float): target similarity quality.
@@ -28,7 +28,7 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
 
         # synthetic examples that belong to this label
         label_ds = split_ds.filter(
-            lambda x: x["synthetic"] and x["label"][label_id] == 1
+            lambda x: x["synthetic"] and x["labels"][label_id] == 1
         )
 
         if len(label_ds) == 0:
