@@ -1,10 +1,57 @@
 import hydra
 import logging
+import numpy as np
 from omegaconf import OmegaConf
-from datasets import concatenate_datasets, DatasetDict
+from datasets import concatenate_datasets, DatasetDict,Dataset
 
 def oversample_top_per_label(split_ds, SYNQ, X_augment):
-    pass
+    """
+    Keep all real examples and add top synthetic examples per label
+    based on similarity_score closeness to SYNQ.
+    
+    Args:
+        split_ds (Dataset): HuggingFace dataset with fields:
+            - "label" (list[int]): one-hot or multi-label encoding
+            - "synthetic" (bool)
+            - "similarity_score" (float)
+        SYNQ (float): target similarity quality.
+        X_augment (list[int]): number of synthetic examples to add per label index.
+    
+    Returns:
+        Dataset: new dataset with all real + selected synthetic examples.
+    """
+    selected_examples = []
+
+    for label_id, n_samples in enumerate(X_augment):
+        if n_samples <= 0:
+            continue
+
+        # synthetic examples that belong to this label
+        label_ds = split_ds.filter(
+            lambda x: x["synthetic"] and x["label"][label_id] == 1
+        )
+
+        if len(label_ds) == 0:
+            continue
+
+        # closeness to SYNQ
+        scores = np.abs(np.array(label_ds["similarity_score"]) - SYNQ)
+
+        # take top-N closest
+        top_idx = np.argsort(scores)[:n_samples]
+        selected_examples.extend(label_ds.select(top_idx))
+
+    # keep all real
+    real_ds = split_ds.filter(lambda x: not x["synthetic"])
+
+    # build augmented dataset
+    if selected_examples:
+        aug_ds = Dataset.from_list([ex for ex in selected_examples])
+        return real_ds.concatenate_datasets(aug_ds)
+    else:
+        return real_ds
+    
+
 
 def filter_high_quality_synthetic(example, threshold):
     """
