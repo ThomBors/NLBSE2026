@@ -3,7 +3,8 @@ from setfit import SetFitModel, Trainer, TrainingArguments
 from tqdm.auto import tqdm
 import os
 tqdm.pandas()
-
+import gc
+import torch
 
 langs = ["java", "python", "pharo"]
 labels = {
@@ -57,3 +58,9 @@ def classifiers(cfg, ds,SYNQ):
         trainer.model.save_pretrained(
             output_dir
         )
+        # Explicit cleanup
+        del trainer
+        del model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
