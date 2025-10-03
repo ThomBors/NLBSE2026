@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 
+
 class BalancerQuality:
     def __init__(self, scale=1.0):
         """
@@ -10,7 +11,7 @@ class BalancerQuality:
         self.scale = scale
 
     def balance_labels(self, ds):
-        
+
         return None
 
     def __call__(self, ds, lang=None):

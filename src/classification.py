@@ -2,6 +2,7 @@
 from setfit import SetFitModel, Trainer, TrainingArguments
 from tqdm.auto import tqdm
 import os
+
 tqdm.pandas()
 import gc
 import torch
@@ -29,7 +30,7 @@ labels = {
 }
 
 
-def classifiers(cfg, ds,SYNQ):
+def classifiers(cfg, ds, SYNQ):
 
     for lang in langs:
         model = SetFitModel.from_pretrained(
@@ -55,9 +56,7 @@ def classifiers(cfg, ds,SYNQ):
         )
 
         trainer.train()
-        trainer.model.save_pretrained(
-            output_dir
-        )
+        trainer.model.save_pretrained(output_dir)
         # Explicit cleanup
         del trainer
         del model

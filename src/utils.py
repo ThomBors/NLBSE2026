@@ -98,8 +98,7 @@ def title():
     )
 
 
-
-def labels_and_synthetic_csv(data, lang, labels,SYNQ, report_rows):
+def labels_and_synthetic_csv(data, lang, labels, SYNQ, report_rows):
     for label in labels[lang]:
         # 2x2 counters
         counts = {
@@ -133,35 +132,54 @@ def labels_and_synthetic_csv(data, lang, labels,SYNQ, report_rows):
             mean_similarity = sum(similarity_scores) / len(similarity_scores)
             sd_similarity = pd.Series(similarity_scores).std()
 
-        report_rows.append({
-            "language": lang,
-            "label": label,
-            "num_positive": total_pos,
-            "num_negative": total_neg,
-            "num_synthetic_positive": counts["synthetic_pos"],
-            "num_synthetic_negative": counts["synthetic_neg"],
-            "num_real_positive": counts["real_pos"],
-            "num_real_negative": counts["real_neg"],
-            "mean_similarity_synthetic": mean_similarity,
-            "sd_similarity_synthetic": sd_similarity,
-            "SYNQ": SYNQ
-        })
+        report_rows.append(
+            {
+                "language": lang,
+                "label": label,
+                "num_positive": total_pos,
+                "num_negative": total_neg,
+                "num_synthetic_positive": counts["synthetic_pos"],
+                "num_synthetic_negative": counts["synthetic_neg"],
+                "num_real_positive": counts["real_pos"],
+                "num_real_negative": counts["real_neg"],
+                "mean_similarity_synthetic": mean_similarity,
+                "sd_similarity_synthetic": sd_similarity,
+                "SYNQ": SYNQ,
+            }
+        )
+
 
 def split_list_into_columns(row, lang):
     labels = {
-        'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-        'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-        'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+        "java": [
+            "summary",
+            "Ownership",
+            "Expand",
+            "usage",
+            "Pointer",
+            "deprecation",
+            "rational",
+        ],
+        "python": ["Usage", "Parameters", "DevelopmentNotes", "Expand", "Summary"],
+        "pharo": [
+            "Keyimplementationpoints",
+            "Example",
+            "Responsibilities",
+            "Intent",
+            "Keymessages",
+            "Collaborators",
+        ],
     }
-    values_list = row['labels']  # Replace 'values' with your actual column name
+    values_list = row["labels"]  # Replace 'values' with your actual column name
     dict = {}
     for key in labels[lang]:
-        
+
         dict[key] = values_list[labels[lang].index(key)]
 
     return dict
 
-def generate_label_statistics(cfg,ds,SYNQ, output_file_name="label_statistics.csv"):
+
+def generate_label_statistics(cfg, ds, SYNQ, output_file_name="label_statistics.csv"):
     """
     Generate per-label statistics for oversampled dataset and save to CSV.
     """
@@ -169,20 +187,36 @@ def generate_label_statistics(cfg,ds,SYNQ, output_file_name="label_statistics.cs
     output_dir.mkdir(parents=True, exist_ok=True)
     output_csv_path = output_dir / output_file_name
 
-
-    langs = ['java', 'python', 'pharo']
+    langs = ["java", "python", "pharo"]
     labels = {
-        'java': ['summary', 'Ownership', 'Expand', 'usage', 'Pointer', 'deprecation', 'rational'],
-        'python': ['Usage', 'Parameters', 'DevelopmentNotes', 'Expand', 'Summary'],
-        'pharo': ['Keyimplementationpoints', 'Example', 'Responsibilities', 'Intent', 'Keymessages', 'Collaborators']
+        "java": [
+            "summary",
+            "Ownership",
+            "Expand",
+            "usage",
+            "Pointer",
+            "deprecation",
+            "rational",
+        ],
+        "python": ["Usage", "Parameters", "DevelopmentNotes", "Expand", "Summary"],
+        "pharo": [
+            "Keyimplementationpoints",
+            "Example",
+            "Responsibilities",
+            "Intent",
+            "Keymessages",
+            "Collaborators",
+        ],
     }
 
     report_rows = []
 
     # Convert dataset labels into dicts for easier access
     for lang in langs:
-        ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(lambda row: split_list_into_columns(row, lang))
-        labels_and_synthetic_csv(ds_split, lang, labels,SYNQ, report_rows)
+        ds_split = concatenate_datasets([ds[f"{lang}_train"]]).map(
+            lambda row: split_list_into_columns(row, lang)
+        )
+        labels_and_synthetic_csv(ds_split, lang, labels, SYNQ, report_rows)
 
     # Create DataFrame and save CSV
     report_df = pd.DataFrame(report_rows)
@@ -190,4 +224,3 @@ def generate_label_statistics(cfg,ds,SYNQ, output_file_name="label_statistics.cs
     print(f"Label statistics CSV saved to {output_csv_path}")
 
     return report_df
-

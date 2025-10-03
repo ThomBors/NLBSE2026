@@ -4,8 +4,13 @@ import os
 
 import torch
 from datasets import DatasetDict
-from transformers import (AutoTokenizer, DataCollatorForLanguageModeling,
-                          ModernBertForMaskedLM, Trainer, TrainingArguments)
+from transformers import (
+    AutoTokenizer,
+    DataCollatorForLanguageModeling,
+    ModernBertForMaskedLM,
+    Trainer,
+    TrainingArguments,
+)
 
 from src.utils import group_texts
 

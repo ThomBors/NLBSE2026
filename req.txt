@@ -17,3 +17,6 @@ rootutils==1.0.7
 
 # --- Testing --- #
 pytest==8.4.2
+
+# --- Formattin --- #
+black==25.9.0

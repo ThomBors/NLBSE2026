@@ -13,7 +13,9 @@ def evaluation(cfg, ds, langs, labels, SYNQ):
     scores = []
     for lan in langs:
         # to load trained models:
-        model = SetFitModel.from_pretrained(f"{cfg.paths.res_dir}/models/{lan}-classifier-SetFit/{SYNQ}")
+        model = SetFitModel.from_pretrained(
+            f"{cfg.paths.res_dir}/models/{lan}-classifier-SetFit/{SYNQ}"
+        )
         # to load pretrained models from Hub:
         # model = SetFitModel.from_pretrained(f'NLBSE/nlbse26_{lan}')
         with torch.profiler.profile(with_flops=True) as p:

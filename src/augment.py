@@ -10,13 +10,14 @@ from tqdm import tqdm
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 from difflib import SequenceMatcher
 
+
 def compute_similarity(similarity_model, original_sentence, new_sentence):
     embeddings = similarity_model.encode(
         [original_sentence, new_sentence], convert_to_tensor=True
     )
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     # Normalize to [0,1] if requested
-    score = (score + 1) / 2 
+    score = (score + 1) / 2
     return score
 
 
@@ -69,12 +70,16 @@ def predict_masked_token_topn(model, tokenizer, input_ids, mask_idx, n=10):
 
     return predicted_id, predicted_token
 
+
 def is_too_similar(a, b, threshold=0.99):
     """
     Returns True if a and b are too similar (normalized).
     threshold=0.9 means 90% similar -> considered duplicate
     """
-    return SequenceMatcher(None, a.lower().strip(), b.lower().strip()).ratio() > threshold
+    return (
+        SequenceMatcher(None, a.lower().strip(), b.lower().strip()).ratio() > threshold
+    )
+
 
 def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments=5):
     generated_sentences = set()
@@ -106,8 +111,9 @@ def augment_example(cfg, example, model, similarity_model, tokenizer, x_augments
             normalized_new = new_sentence.lower()
 
             # Skip if exact or nearly identical to original or already generated
-            if (normalized_new != example["combo"].lower()
-                and not any(is_too_similar(normalized_new, s) for s in generated_sentences)):
+            if normalized_new != example["combo"].lower() and not any(
+                is_too_similar(normalized_new, s) for s in generated_sentences
+            ):
                 generated_sentences.add(normalized_new)
 
     augmented_list = []

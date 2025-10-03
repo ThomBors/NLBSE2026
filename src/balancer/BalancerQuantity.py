@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 
+
 class BalancerQuantity:
     def __init__(self, scale=1.0):
         """
@@ -12,13 +13,22 @@ class BalancerQuantity:
         self.langs = ["java", "python", "pharo"]
         self.labels = {
             "java": [
-                "summary", "Ownership", "Expand", "usage",
-                "Pointer", "deprecation", "rational",
+                "summary",
+                "Ownership",
+                "Expand",
+                "usage",
+                "Pointer",
+                "deprecation",
+                "rational",
             ],
             "python": ["Usage", "Parameters", "DevelopmentNotes", "Expand", "Summary"],
             "pharo": [
-                "Keyimplementationpoints", "Example", "Responsibilities",
-                "Intent", "Keymessages", "Collaborators",
+                "Keyimplementationpoints",
+                "Example",
+                "Responsibilities",
+                "Intent",
+                "Keymessages",
+                "Collaborators",
             ],
         }
 

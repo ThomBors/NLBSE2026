@@ -66,10 +66,10 @@ class pipeline:
         dsplus = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
-        generate_label_statistics(cfg,dsplus,SYNQ,"oversampling_report_complete.csv")
+        generate_label_statistics(cfg, dsplus, SYNQ, "oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
-        classifiers(cfg, dsplus,SYNQ)
+        classifiers(cfg, dsplus, SYNQ)
         self.cleanup()
 
         # --- Test Pipeline --- #
@@ -79,8 +79,7 @@ class pipeline:
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)
-        compute.to_csv(f"{output_dir}/compute.csv", index=False)        
-        
+        compute.to_csv(f"{output_dir}/compute.csv", index=False)
 
         # max_avg_runtime = 5
         # max_avg_flops = 5000
@@ -96,7 +95,6 @@ class pipeline:
 
         # round(score(avg_f1, avg_runtime, avg_flops), 2)
 
-
     def cleanup(self):
 
         # Free CUDA memory
@@ -106,5 +104,3 @@ class pipeline:
 
         # Clear any remaining references
         gc.collect()
-
-        

@@ -2,13 +2,14 @@ import hydra
 import logging
 import numpy as np
 from omegaconf import OmegaConf
-from datasets import concatenate_datasets, DatasetDict,Dataset
+from datasets import concatenate_datasets, DatasetDict, Dataset
+
 
 def oversample_top_per_label(split_ds, SYNQ, X_augment):
     """
     Keep all real examples and add top synthetic examples per label
     based on similarity_score closeness to SYNQ.
-    
+
     Args:
         split_ds (Dataset): HuggingFace dataset with fields:
             - "labels" (list[int]): one-hot or multi-label encoding
@@ -16,7 +17,7 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
             - "similarity_score" (float)
         SYNQ (float): target similarity quality.
         X_augment (list[int]): number of synthetic examples to add per label index.
-    
+
     Returns:
         Dataset: new dataset with all real + selected synthetic examples.
     """
@@ -43,17 +44,15 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
 
     # keep all real and high quelity data
     real_ds = split_ds.filter(
-        lambda x: (not x["synthetic"]) 
-        or x["similarity_score"] > 0.99
+        lambda x: (not x["synthetic"]) or x["similarity_score"] > 0.99
     )
-    
+
     # build augmented dataset
     if selected_examples:
         aug_ds = Dataset.from_list(selected_examples, features=split_ds.features)
-        return concatenate_datasets([real_ds,aug_ds])
+        return concatenate_datasets([real_ds, aug_ds])
     else:
         return real_ds
-    
 
 
 def filter_high_quality_synthetic(example, threshold):
@@ -102,4 +101,3 @@ def oversampling(cfg, ds: DatasetDict, SYNQ: float):
         filtered_ds[split_name] = split_ds
 
     return DatasetDict(filtered_ds)
-
