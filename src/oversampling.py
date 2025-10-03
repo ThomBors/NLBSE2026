@@ -43,7 +43,7 @@ def oversample_top_per_label(split_ds, SYNQ, X_augment):
 
     # keep all real and high quelity data
     real_ds = split_ds.filter(
-        lambda x: (not x["synthetic"]) or x["similarity_score"] > 0.99
+        lambda x: (not x["synthetic"]) or x["similarity_score"] > 0.95
     )
     
     # build augmented dataset
