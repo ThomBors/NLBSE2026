@@ -63,7 +63,7 @@ class pipeline:
 
         # --- Set Syntetic Quality and Number of Observation--- #
         SYNQ = cfg.trainer.SYNQ
-        dsplus = oversampling(cfg, dsplus, SYNQ)
+        dsplus, strategy = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
         generate_label_statistics(cfg, dsplus, SYNQ, "oversampling_report_complete.csv")
@@ -75,7 +75,7 @@ class pipeline:
         # --- Test Pipeline --- #
         scores, compute = evaluation(cfg, dsplus, self.langs, self.labels, SYNQ)
 
-        output_dir = f"{cfg.paths.res_dir}/performance/{SYNQ}"
+        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)

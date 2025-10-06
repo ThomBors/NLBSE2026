@@ -64,7 +64,7 @@ def createMLforWCft(cfg, ds, langs, device):
     )
 
     for l in langs:
-        model_dir = f"{cfg.paths.res_dir}/models/{l}-finetuned-ModernBert"
+        model_dir = f"{cfg.paths.res_dir}/models/finetune/{l}-finetuned-ModernBert"
 
         if os.path.exists(model_dir) and os.path.isdir(model_dir):
             logging.info(

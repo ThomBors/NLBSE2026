@@ -14,7 +14,7 @@ def evaluation(cfg, ds, langs, labels, SYNQ):
     for lan in langs:
         # to load trained models:
         model = SetFitModel.from_pretrained(
-            f"{cfg.paths.res_dir}/models/{lan}-classifier-SetFit/{SYNQ}"
+            f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit/{SYNQ}"
         )
         # to load pretrained models from Hub:
         # model = SetFitModel.from_pretrained(f'NLBSE/nlbse26_{lan}')

@@ -100,4 +100,4 @@ def oversampling(cfg, ds: DatasetDict, SYNQ: float):
 
         filtered_ds[split_name] = split_ds
 
-    return DatasetDict(filtered_ds)
+    return DatasetDict(filtered_ds),Balancer.__class__.__name__

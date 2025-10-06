@@ -119,3 +119,4 @@ class BalancerRatio:
 
     def __call__(self, ds, lang):
         return self.balance_labels(ds[lang])
+

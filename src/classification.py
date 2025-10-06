@@ -37,7 +37,7 @@ def classifiers(cfg, ds, SYNQ):
             cfg.component.classifier.modelname, multi_target_strategy="multi-output"
         )
 
-        output_dir = f"{cfg.paths.res_dir}/models/{lang}-classifier-SetFit/{SYNQ}"
+        output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         args = TrainingArguments(

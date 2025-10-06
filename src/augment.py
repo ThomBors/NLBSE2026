@@ -351,7 +351,7 @@ def run_augmentation_pipeline(cfg, ds):
             )
             continue
 
-        model_name = f"{cfg.paths.res_dir}/models/{lang}-finetuned-ModernBert"
+        model_name = f"{cfg.paths.res_dir}/models/finetune/{lang}-finetuned-ModernBert"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForMaskedLM.from_pretrained(model_name)
 
