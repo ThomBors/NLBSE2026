@@ -87,7 +87,7 @@ class MultiTaskTrainer(Trainer):
 # ----------------------------------------------------------------------
 # 3. Main classifier training entrypoint
 # ----------------------------------------------------------------------
-def classifiers(cfg, ds, SYNQ, langs):
+def classifiers(cfg, ds, SYNQ):
     for lang in langs:
         print(f"\n--- Training language: {lang} ---")
         model = SetFitModel.from_pretrained(
