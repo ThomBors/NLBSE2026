@@ -179,11 +179,11 @@ def split_list_into_columns(row, lang):
     return dict
 
 
-def generate_label_statistics(cfg, ds, SYNQ, output_file_name="label_statistics.csv"):
+def generate_label_statistics(cfg, ds, SYNQ,strategy, output_file_name="label_statistics.csv"):
     """
     Generate per-label statistics for oversampled dataset and save to CSV.
     """
-    output_dir = Path(cfg.paths.res_dir) / "performance" / SYNQ
+    output_dir = Path(cfg.paths.res_dir) / "performance" / strategy / SYNQ
     output_dir.mkdir(parents=True, exist_ok=True)
     output_csv_path = output_dir / output_file_name
 

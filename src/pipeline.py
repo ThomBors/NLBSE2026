@@ -66,7 +66,7 @@ class pipeline:
         dsplus, strategy = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
-        generate_label_statistics(cfg, dsplus, SYNQ, "oversampling_report_complete.csv")
+        generate_label_statistics(cfg, dsplus, SYNQ,strategy, "oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
         classifiers(cfg, dsplus, SYNQ)
