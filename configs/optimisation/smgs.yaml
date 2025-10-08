@@ -1,0 +1,4 @@
+method: smgs
+gamma: 0.7
+momentum: 0.9
+beta2: 0.99

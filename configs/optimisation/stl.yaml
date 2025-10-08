@@ -1,0 +1,2 @@
+method: stl
+main_task: ${experiment.trainer.task}

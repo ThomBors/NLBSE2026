@@ -23,6 +23,7 @@ def evaluation(cfg, ds, langs, labels, SYNQ):
             begin = time.time()
             for i in range(10):
                 y_pred = model(x)
+                # y_pred = [torch.argmax(out, dim=1) for out in y_pred] -->check for mtl
                 y_pred = np.asarray(y_pred).T
             total = time.time() - begin
             total_time = total_time + total

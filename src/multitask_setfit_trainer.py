@@ -4,6 +4,7 @@ import gc
 import torch
 import torch.nn as nn
 from setfit import SetFitModel, Trainer, TrainingArguments
+from src.GradSurg.weight_methods import WeightMethods
 
 langs = ["java", "python", "pharo"]
 labels = {
@@ -32,62 +33,72 @@ labels = {
 # 1. Custom multi-task head
 # ----------------------------------------------------------------------
 class MultiTaskHead(nn.Module):
-    def __init__(self, input_dim, task_dims):
+    def __init__(self, input_dim, n_task):
         """
         input_dim: embedding size from SetFit backbone
         task_dims: dict {task_name: num_classes}
         """
         super().__init__()
-        self.task_heads = nn.ModuleDict()
-        for task_name, num_classes in task_dims.items():
-            self.task_heads[task_name] = nn.Sequential(
+        self.task_heads = nn.ModuleList(
+            [
+                nn.Sequential(
                 nn.Linear(input_dim, 64),
                 nn.ReLU(),
                 nn.Dropout(0.1),
-                nn.Linear(64, num_classes),
-            )
+                nn.Linear(64, 2),
+                )
+                for _ in range(n_task)
+            ]
+        )
 
     def forward(self, x):
         # returns a dict of logits per task
-        return {task: head(x) for task, head in self.task_heads.items()}
+        y_ = [head(x) for head in self.task_heads]
+        return [torch.softmax(logits,dim=1) for logits in y_]
 
 
 # ----------------------------------------------------------------------
 # 2. Custom Trainer (HF-compatible)
 # ----------------------------------------------------------------------
 class MultiTaskTrainer(Trainer):
-    def __init__(self, *args, task_names=None, **kwargs):
+    def __init__(self, *args, n_task=None,weight_method=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task_names = task_names
+        self.n_task = n_task
         self.loss_fn = nn.CrossEntropyLoss()
+        self.weight_method = weight_method
 
     def compute_loss(self, model, inputs, return_outputs=False):
-        """
-        HF Trainer calls this every step.
-        We override it to compute a summed multi-task loss.
-        """
-        # inputs: dict with "combo" (text) and "labels" (dict of task labels)
         texts = inputs["combo"]
-        labels_dict = inputs["labels"]
+        y = inputs["labels"]
 
-        # Encode text → embeddings
         embeddings = model.model_body.encode(texts)
-        outputs = model.model_head(embeddings)
+        y_ = model.model_head(embeddings)
 
-        # Aggregate multi-task loss
-        total_loss = 0
-        for task_name in self.task_names:
-            logits = outputs[task_name]
-            labels = labels_dict[task_name]
-            total_loss += self.loss_fn(logits, labels)
+        # Compute task-wise losses
+        losses = torch.stack([
+                    self.loss_fn(y_pred, y[:, i])  # select labels for task i
+                    for i, y_pred in enumerate(y_)
+                    ])
+        
+        # Call your custom backward
+        loss, _ = self.weight_method.backward(
+            losses=losses,
+            shared_parameters=list(model.model_body()),
+            task_specific_parameters=list(model.model_head())
+        )
 
-        return (total_loss, outputs) if return_outputs else total_loss
+        # Return a scalar to satisfy Trainer API (detach so no second backward)
+        dummy_loss = loss.detach().sum()  
 
+        if return_outputs:
+            return dummy_loss, y_
+        return dummy_loss
+    
 
 # ----------------------------------------------------------------------
 # 3. Main classifier training entrypoint
 # ----------------------------------------------------------------------
-def classifiers(cfg, ds, SYNQ):
+def classifiers(cfg, ds, SYNQ,device='cpu'):
     for lang in langs:
         print(f"\n--- Training language: {lang} ---")
         model = SetFitModel.from_pretrained(
@@ -97,11 +108,14 @@ def classifiers(cfg, ds, SYNQ):
 
         # Example multi-task setup (customize to your case)
         input_dim = model.model_head.in_features
-        task_dims = {
-            "sentiment": 2,  # binary task
-            "topic": 5,      # 5-class task
-        }
-        model.model_head = MultiTaskHead(input_dim, task_dims)
+        n_tasks = len(labels[lang])
+        model.model_head = MultiTaskHead(input_dim, n_tasks)
+
+        weight_method = WeightMethods(
+            method=cfg.optimization.method,
+            n_tasks=n_tasks,
+            device=device,
+        )
 
         output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
@@ -119,7 +133,8 @@ def classifiers(cfg, ds, SYNQ):
             train_dataset=ds[f"{lang}_train"],
             eval_dataset=ds[f"{lang}_test"],
             column_mapping={"combo": "text", "labels": "label"},
-            task_names=list(task_dims.keys()),
+            n_task=n_tasks,
+            weight_method = weight_method
         )
 
         trainer.train()
@@ -130,3 +145,4 @@ def classifiers(cfg, ds, SYNQ):
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
+
