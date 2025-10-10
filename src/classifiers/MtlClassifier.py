@@ -3,8 +3,15 @@ import os
 import gc
 import torch
 import torch.nn as nn
-from setfit import SetFitModel, Trainer, TrainingArguments
+from setfit import Trainer, TrainingArguments
+from setfit import SetFitModel as BaseSetFitModel
 from src.GradSurg.weight_methods import WeightMethods
+from typing import List, Union, Optional
+
+import setfit
+import torch
+from torch import nn
+from tqdm.asyncio import trange, tqdm
 
 langs = ["java", "python", "pharo"]
 labels = {
@@ -34,87 +41,152 @@ labels = {
 # ----------------------------------------------------------------------
 class MultiTaskHead(nn.Module):
     def __init__(self, input_dim, n_task):
-        """
-        input_dim: embedding size from SetFit backbone
-        task_dims: dict {task_name: num_classes}
-        """
         super().__init__()
+        self.n_task = n_task
         self.task_heads = nn.ModuleList(
             [
                 nn.Sequential(
-                nn.Linear(input_dim, 64),
-                nn.ReLU(),
-                nn.Dropout(0.1),
-                nn.Linear(64, 2),
+                    nn.Linear(input_dim, 64),
+                    nn.ReLU(),
+                    nn.Dropout(0.1),
+                    nn.Linear(64, 2),  # binary classification per task
                 )
                 for _ in range(n_task)
             ]
         )
-        self._init_weights()
 
-    def _init_weights(self):
-        for head in self.task_heads:
-            for layer in head:
-                if isinstance(layer, nn.Linear):
-                    nn.init.xavier_normal_(layer.weight)
-                    if layer.bias is not None:
-                        nn.init.zeros_(layer.bias)
+    def forward(self, x: dict) -> dict:
+        """
+        x: dict output from SetFit encoder, expects 'sentence_embedding' key
+        Returns: dict with 'logits' key, shape [batch_size, n_tasks, n_classes]
+        """
+        embeddings = x["sentence_embedding"]
+        logits = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
+        return {"logits": logits}  # shape [batch, n_tasks, n_classes]
 
-    def forward(self, x):
-        # returns a dict of logits per task
-        y_ = [head(x) for head in self.task_heads]
-        return [torch.softmax(logits,dim=1) for logits in y_]
-    
-    def get_loss_fn(self):
-        def loss_fn(logits_list, labels):
-            """
-            logits_list: list of tensors [batch, n_classes] for each task
-            labels: tensor [batch, n_tasks] with integer class labels
-            """
-            total_loss = 0.0
-            for i, logits in enumerate(logits_list):
-                total_loss += self.loss_fn(logits, labels[:, i])
-            return total_loss
+    def predict_proba(self, embeddings: torch.Tensor) -> torch.Tensor:
+        probs = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
+        return torch.softmax(probs,dim=2)  # probabilities
 
-        return loss_fn
+    def predict(self, embeddings: torch.Tensor) -> torch.Tensor:
+        proba = self.predict_proba(embeddings)
+        return proba
+
+
 
 
 # ----------------------------------------------------------------------
-# 2. Custom Trainer (HF-compatible)
+# 2. Custom SetFitModel Trainer loop
 # ----------------------------------------------------------------------
-class MultiTaskTrainer(Trainer):
-    def __init__(self, *args, n_task=None,weight_method=None, **kwargs):
+class MTLSetFitModel(setfit.SetFitModel):
+    def __init__(
+        self,
+        *args,
+        weight_method=None,
+        n_task=1,
+        **kwargs,
+    ):
+        """
+        Initializes a model class with support for static or dynamic weighted loss strategies.
+
+        This constructor:
+            - Passes all positional and keyword arguments to the superclass
+            - Stores the loss strategy and whether it is dynamic
+            - Initializes and moves the custom class weights tensor to the appropriate device
+            - Stores the number of output classes
+
+        Parameters:
+            *args: Positional arguments passed to the parent class.
+            custom_loss_weight (Iterable[float] or Tensor): Class-specific weights for the loss function.
+            weighted_loss_strategy (str or Callable): The selected loss weighting strategy (e.g., "EW", "ICF", or a callable).
+            num_classes (int): The number of output classes.
+            isDynamic (bool): Whether the model uses a dynamic weighting strategy.
+            **kwargs: Additional keyword arguments passed to the parent class.
+
+        Returns:
+            None
+        """
+
         super().__init__(*args, **kwargs)
-        self.n_task = n_task
-        self.loss_fn = nn.CrossEntropyLoss()
         self.weight_method = weight_method
+        self.n_task = n_task
 
-    def compute_loss(self, model, inputs, return_outputs=False):
-        texts = inputs["combo"]
-        y = inputs["labels"]
 
-        embeddings = model.model_body.encode(texts)
-        y_ = model.model_head(embeddings)
+    def fit(
+        self,
+        x_train: List[str],
+        y_train: Union[List[int], List[List[int]]],
+        num_epochs: int,
+        batch_size: Optional[int] = None,
+        body_learning_rate: Optional[float] = None,
+        head_learning_rate: Optional[float] = None,
+        end_to_end: bool = False,
+        l2_weight: Optional[float] = None,
+        max_length: Optional[int] = None,
+        show_progress_bar: bool = True,
+    ) -> None:
+        """Train the classifier head, only used if a differentiable PyTorch head is used.
 
-        # Compute task-wise losses
-        losses = torch.stack([
-                    self.loss_fn(y_pred, y[:, i])  # select labels for task i
-                    for i, y_pred in enumerate(y_)
-                    ])
+        Args:
+            x_train (`List[str]`): A list of training sentences.
+            y_train (`Union[List[int], List[List[int]]]`): A list of labels corresponding to the training sentences.
+            num_epochs (`int`): The number of epochs to train for.
+            batch_size (`int`, *optional*): The batch size to use.
+            body_learning_rate (`float`, *optional*): The learning rate for the `SentenceTransformer` body
+                in the `AdamW` optimizer. Disregarded if `end_to_end=False`.
+            head_learning_rate (`float`, *optional*): The learning rate for the differentiable torch head
+                in the `AdamW` optimizer.
+            end_to_end (`bool`, defaults to `False`): If True, train the entire model end-to-end.
+                Otherwise, freeze the `SentenceTransformer` body and only train the head.
+            l2_weight (`float`, *optional*): The l2 weight for both the model body and head
+                in the `AdamW` optimizer.
+            max_length (`int`, *optional*): The maximum token length a tokenizer can generate. If not provided,
+                the maximum length for the `SentenceTransformer` body is used.
+            show_progress_bar (`bool`, defaults to `True`): Whether to display a progress bar for the training
+                epochs and iterations.
+        """
         
-        # Call your custom backward
-        loss, _ = self.weight_method.backward(
-            losses=losses,
-            shared_parameters=list(model.model_body()),
-            task_specific_parameters=list(model.model_head())
-        )
+        self.model_body.train()
+        self.model_head.train()
+        if not end_to_end:
+            self.freeze("body")
 
-        # Return a scalar to satisfy Trainer API (detach so no second backward)
-        dummy_loss = loss.detach().sum()  
+        dataloader = self._prepare_dataloader(x_train, y_train, batch_size, max_length)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = self._prepare_optimizer(head_learning_rate, body_learning_rate, l2_weight)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+        for epoch_idx in trange(num_epochs, desc="Epoch", disable=not show_progress_bar):
+            for batch in tqdm(dataloader, desc="Iteration", disable=not show_progress_bar, leave=False):
+                features, labels = batch
+                optimizer.zero_grad()
 
-        if return_outputs:
-            return dummy_loss, y_
-        return dummy_loss
+                # to model's device
+                features = {k: v.to(self.device) for k, v in features.items()}
+                labels = labels.to(self.device)
+
+                outputs = self.model_body(features)
+                if self.normalize_embeddings:
+                    outputs["sentence_embedding"] = nn.functional.normalize(
+                        outputs["sentence_embedding"], p=2, dim=1
+                    )
+                outputs = self.model_head(outputs)
+                logits = outputs["logits"]
+
+                # TODO work here "nll_loss_forward_reduce_cuda_kernel_2d_index" not implemented for 'Float'
+                losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
+
+                # Custom weighting/backprop
+                loss, _ = self.weight_method.backward(
+                    losses=losses,
+                    shared_parameters=list(self.model_body.parameters()),
+                    task_specific_parameters=list(self.model.model_head.parameters())
+                )
+                optimizer.step()
+
+            scheduler.step()
+
+        if not end_to_end:
+            self.unfreeze("body")
     
 
 # ----------------------------------------------------------------------
@@ -137,41 +209,44 @@ class ClassifierMtl:
     def __call__(self,cfg, ds, SYNQ,device='cpu'):
         for lang in langs:
             print(f"\n--- Training language: {lang} ---")
-            model = SetFitModel.from_pretrained(
-                self.modelname,
-                multi_target_strategy="multi-output",
-            )
-
-            # Example multi-task setup (customize to your case)
-            input_dim = model.model_body.get_sentence_embedding_dimension()
             n_tasks = len(labels[lang])
-            model.model_head = MultiTaskHead(input_dim, n_tasks)
-
             weight_method = WeightMethods(
                 method=cfg.optimisation.method,
                 n_tasks=n_tasks,
                 device=device,
             )
+            base_model = BaseSetFitModel.from_pretrained(
+                self.modelname,
+                multi_target_strategy="multi-output",
+            )
 
+            # Example multi-task setup (customize to your case)
+            input_dim = base_model.model_body.get_sentence_embedding_dimension()
+            model = MTLSetFitModel(
+                model_body=base_model.model_body,
+                model_head=MultiTaskHead(input_dim, n_tasks).to(device),
+                weight_method=weight_method,
+                n_task=n_tasks
+            )
+           
+            
             output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
             os.makedirs(output_dir, exist_ok=True)
 
 
             args = TrainingArguments(
                 output_dir=output_dir,
-                num_epochs=1 if lang == "java" else 10,
+                num_epochs=5 if lang == "java" else 10,
                 batch_size=self.batch_size,
                 num_iterations=self.num_iterations,
             )
 
-            trainer = MultiTaskTrainer(
+            trainer = Trainer(
                 model=model,
                 args=args,
                 train_dataset=ds[f"{lang}_train"],
                 eval_dataset=ds[f"{lang}_test"],
-                column_mapping={"combo": "text", "labels": "label"},
-                n_task=n_tasks,
-                weight_method = weight_method
+                column_mapping={"combo": "text", "labels": "label"}
             )
  
             trainer.train()

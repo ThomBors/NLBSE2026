@@ -72,6 +72,7 @@ class pipeline:
         # --- Code Commente Classification --- #
         classifier_cfg = OmegaConf.to_container(cfg.component.classifier, resolve=False)
         classifier = instantiate(classifier_cfg)
+        print('start')
         classifier(cfg, dsplus, SYNQ,device)
         self.cleanup()
 
