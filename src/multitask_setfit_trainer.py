@@ -147,7 +147,6 @@ def classifiers(cfg, ds, SYNQ,device='cpu'):
         )
 
         trainer.train()
-        trainer.evaluate()
         trainer.model.save_pretrained(output_dir)
 
         del trainer, model
