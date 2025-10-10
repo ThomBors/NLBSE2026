@@ -3,8 +3,9 @@ import os
 import torch
 from datasets import load_dataset, load_from_disk
 import gc
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
 from src.augment import run_augmentation_pipeline
-from src.multitask_setfit_trainer import classifiers
 from src.evaluation import evaluation
 from src.finetune import createMLforWCft
 from src.oversampling import oversampling
@@ -69,7 +70,9 @@ class pipeline:
         generate_label_statistics(cfg, dsplus, SYNQ,strategy, "oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
-        classifiers(cfg, dsplus, SYNQ)
+        classifier_cfg = OmegaConf.to_container(cfg.component.classifier, resolve=False)
+        classifier = instantiate(classifier_cfg)
+        classifier(cfg, dsplus, SYNQ,device)
         self.cleanup()
 
         # --- Test Pipeline --- #

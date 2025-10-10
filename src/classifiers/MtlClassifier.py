@@ -64,6 +64,19 @@ class MultiTaskHead(nn.Module):
         # returns a dict of logits per task
         y_ = [head(x) for head in self.task_heads]
         return [torch.softmax(logits,dim=1) for logits in y_]
+    
+    def get_loss_fn(self):
+        def loss_fn(logits_list, labels):
+            """
+            logits_list: list of tensors [batch, n_classes] for each task
+            labels: tensor [batch, n_tasks] with integer class labels
+            """
+            total_loss = 0.0
+            for i, logits in enumerate(logits_list):
+                total_loss += self.loss_fn(logits, labels[:, i])
+            return total_loss
+
+        return loss_fn
 
 
 # ----------------------------------------------------------------------
@@ -107,50 +120,65 @@ class MultiTaskTrainer(Trainer):
 # ----------------------------------------------------------------------
 # 3. Main classifier training entrypoint
 # ----------------------------------------------------------------------
-def classifiers(cfg, ds, SYNQ,device='cpu'):
-    for lang in langs:
-        print(f"\n--- Training language: {lang} ---")
-        model = SetFitModel.from_pretrained(
-            cfg.component.classifier.modelname,
-            multi_target_strategy="multi-output",
-        )
+class ClassifierMtl:
+    def __init__(self, classifier_type: str, modelname: str, batch_size: int, num_iterations: int):
+        """
+        Args:
+            classifier_type (str): Type of classifier to train ("linear", etc.)
+            modelname (str): Pretrained model name for SetFitModel
+            batch_size (int): Batch size for training
+            num_iterations (int): Number of iterations for SetFit fine-tuning
+        """
+        self.classifier_type = classifier_type.lower()
+        self.modelname = modelname
+        self.batch_size = batch_size
+        self.num_iterations = num_iterations
 
-        # Example multi-task setup (customize to your case)
-        input_dim = model.model_body.get_sentence_embedding_dimension()
-        n_tasks = len(labels[lang])
-        model.model_head = MultiTaskHead(input_dim, n_tasks)
+    def __call__(self,cfg, ds, SYNQ,device='cpu'):
+        for lang in langs:
+            print(f"\n--- Training language: {lang} ---")
+            model = SetFitModel.from_pretrained(
+                self.modelname,
+                multi_target_strategy="multi-output",
+            )
 
-        weight_method = WeightMethods(
-            method=cfg.optimisation.method,
-            n_tasks=n_tasks,
-            device=device,
-        )
+            # Example multi-task setup (customize to your case)
+            input_dim = model.model_body.get_sentence_embedding_dimension()
+            n_tasks = len(labels[lang])
+            model.model_head = MultiTaskHead(input_dim, n_tasks)
 
-        output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
-        os.makedirs(output_dir, exist_ok=True)
+            weight_method = WeightMethods(
+                method=cfg.optimisation.method,
+                n_tasks=n_tasks,
+                device=device,
+            )
 
-        args = TrainingArguments(
-            output_dir=output_dir,
-            num_epochs=5 if lang == "java" else 10,
-            batch_size=cfg.component.classifier.batch_size,
-            num_iterations=cfg.component.classifier.num_iterations,
-        )
+            output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
+            os.makedirs(output_dir, exist_ok=True)
 
-        trainer = MultiTaskTrainer(
-            model=model,
-            args=args,
-            train_dataset=ds[f"{lang}_train"],
-            eval_dataset=ds[f"{lang}_test"],
-            column_mapping={"combo": "text", "labels": "label"},
-            n_task=n_tasks,
-            weight_method = weight_method
-        )
 
-        trainer.train()
-        trainer.model.save_pretrained(output_dir)
+            args = TrainingArguments(
+                output_dir=output_dir,
+                num_epochs=1 if lang == "java" else 10,
+                batch_size=self.batch_size,
+                num_iterations=self.num_iterations,
+            )
 
-        del trainer, model
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+            trainer = MultiTaskTrainer(
+                model=model,
+                args=args,
+                train_dataset=ds[f"{lang}_train"],
+                eval_dataset=ds[f"{lang}_test"],
+                column_mapping={"combo": "text", "labels": "label"},
+                n_task=n_tasks,
+                weight_method = weight_method
+            )
+ 
+            trainer.train()
+            trainer.model.save_pretrained(output_dir)
+
+            del trainer, model
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 

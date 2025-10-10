@@ -1,0 +1,2 @@
+from src.classifiers.LinearClassifier import ClassifierLinear
+from src.classifiers.MtlClassifier import ClassifierMtl

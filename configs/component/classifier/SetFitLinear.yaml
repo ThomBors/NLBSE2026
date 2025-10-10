@@ -1,0 +1,5 @@
+_target_: src.classifiers.LinearClassifier.ClassifierLinear
+classifier_type: linear
+modelname: "sentence-transformers/paraphrase-MiniLM-L6-v2"
+batch_size: 32
+num_iterations: 20
