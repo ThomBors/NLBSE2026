@@ -50,6 +50,15 @@ class MultiTaskHead(nn.Module):
                 for _ in range(n_task)
             ]
         )
+        self._init_weights()
+
+    def _init_weights(self):
+        for head in self.task_heads:
+            for layer in head:
+                if isinstance(layer, nn.Linear):
+                    nn.init.xavier_normal_(layer.weight)
+                    if layer.bias is not None:
+                        nn.init.zeros_(layer.bias)
 
     def forward(self, x):
         # returns a dict of logits per task
@@ -107,12 +116,12 @@ def classifiers(cfg, ds, SYNQ,device='cpu'):
         )
 
         # Example multi-task setup (customize to your case)
-        input_dim = model.model_head.in_features
+        input_dim = model.model_body.get_sentence_embedding_dimension()
         n_tasks = len(labels[lang])
         model.model_head = MultiTaskHead(input_dim, n_tasks)
 
         weight_method = WeightMethods(
-            method=cfg.optimization.method,
+            method=cfg.optimisation.method,
             n_tasks=n_tasks,
             device=device,
         )

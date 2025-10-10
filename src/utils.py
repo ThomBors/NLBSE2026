@@ -183,7 +183,7 @@ def generate_label_statistics(cfg, ds, SYNQ,strategy, output_file_name="label_st
     """
     Generate per-label statistics for oversampled dataset and save to CSV.
     """
-    output_dir = Path(cfg.paths.res_dir) / "performance" / strategy / SYNQ
+    output_dir = Path(cfg.paths.res_dir) / "performance" / strategy / str(SYNQ)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_csv_path = output_dir / output_file_name
 

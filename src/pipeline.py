@@ -4,7 +4,7 @@ import torch
 from datasets import load_dataset, load_from_disk
 import gc
 from src.augment import run_augmentation_pipeline
-from src.classification import classifiers
+from src.multitask_setfit_trainer import classifiers
 from src.evaluation import evaluation
 from src.finetune import createMLforWCft
 from src.oversampling import oversampling

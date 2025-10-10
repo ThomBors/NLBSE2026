@@ -152,7 +152,7 @@ class STL(WeightMethod):
 
 
 
-class SMGS(WeightMethod):
+class SAMGS(WeightMethod):
     """Similarity Momentum Gradient Surgery"""
 
     def __init__(
@@ -329,5 +329,5 @@ class WeightMethods:
 METHODS = dict(
     stl=STL,
     ls=LinearScalarization,
-    smgs=SMGS,
+    samgs=SAMGS,
 )

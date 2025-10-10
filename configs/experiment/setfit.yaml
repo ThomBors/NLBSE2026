@@ -7,7 +7,7 @@ defaults:
   - /component/balancer: BalancerQuality
 
 trainer:
-  SYNQ: 0.1
+  SYNQ: 0.99
   ValidationSize: 0.2
 
 component:
