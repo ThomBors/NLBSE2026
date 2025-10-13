@@ -178,6 +178,7 @@ class MTLSetFitModel(setfit.SetFitModel):
                 losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
 
                 # Custom weighting/backprop
+                # TODO work only with ls
                 loss, _ = self.weight_method.backward(
                     losses=losses,
                     shared_parameters=list(self.model_body.parameters()),
