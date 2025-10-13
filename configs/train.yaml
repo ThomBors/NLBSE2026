@@ -3,7 +3,7 @@
 defaults:
   - _self_
   - experiment: setfit
-  - optimisation: samgs
+  - optimisation: ls
   - hydra: default
   - paths: default
   - extras: default

@@ -203,6 +203,7 @@ class SAMGS(WeightMethod):
     def balance_magnitude(self, grads):
         self.t += 1
         w = grads.clone().detach()
+        print(w)
 
         mg = torch.linalg.norm(w, dim=0)
         mg_matrix = mg.unsqueeze(1)  # Shape: (N, 1)
@@ -226,6 +227,8 @@ class SAMGS(WeightMethod):
         mhat = self.m / (1 - self.b1**self.t)
         vhat = self.v / (1 - self.b2**self.t)
 
+        print(vhat,mhat,similarities.mean())
+
         if similarities.mean() < self.gamma:
             #### l2 standardization ####
             l2_norms = torch.norm(w, dim=0, p=2)
@@ -247,6 +250,7 @@ class SAMGS(WeightMethod):
             aligned_w = w * abs(mhat) / (torch.sqrt(vhat))
             w = g
 
+        print(g)
         return g, aligned_w, w
 
     @staticmethod

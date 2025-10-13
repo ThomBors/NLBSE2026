@@ -1,0 +1,3 @@
+_target_: src.evaluations.LinearEvaluation.EvaluationLinear
+evaluation_type: linear
+

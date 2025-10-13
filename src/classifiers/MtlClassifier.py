@@ -46,9 +46,10 @@ class MultiTaskHead(nn.Module):
         self.task_heads = nn.ModuleList(
             [
                 nn.Sequential(
-                    nn.Linear(input_dim, 64),
-                    nn.ReLU(),
-                    nn.Dropout(0.1),
+                    nn.Linear(input_dim, 128),
+                    nn.LeakyReLU(),
+                    nn.Linear(128, 64),
+                    nn.LeakyReLU(),
                     nn.Linear(64, 2),  # binary classification per task
                 )
                 for _ in range(n_task)
@@ -65,11 +66,13 @@ class MultiTaskHead(nn.Module):
         return {"logits": logits}  # shape [batch, n_tasks, n_classes]
 
     def predict_proba(self, embeddings: torch.Tensor) -> torch.Tensor:
-        probs = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
+        with torch.no_grad():
+            probs = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
         return torch.softmax(probs,dim=2)  # probabilities
 
     def predict(self, embeddings: torch.Tensor) -> torch.Tensor:
-        proba = self.predict_proba(embeddings)
+        with torch.no_grad():
+            proba = self.predict_proba(embeddings)
         return proba
 
 
@@ -120,7 +123,7 @@ class MTLSetFitModel(setfit.SetFitModel):
         batch_size: Optional[int] = None,
         body_learning_rate: Optional[float] = None,
         head_learning_rate: Optional[float] = None,
-        end_to_end: bool = False,
+        end_to_end: bool = True,
         l2_weight: Optional[float] = None,
         max_length: Optional[int] = None,
         show_progress_bar: bool = True,
@@ -162,7 +165,7 @@ class MTLSetFitModel(setfit.SetFitModel):
 
                 # to model's device
                 features = {k: v.to(self.device) for k, v in features.items()}
-                labels = labels.to(self.device)
+                labels = labels.to(self.device).long()
 
                 outputs = self.model_body(features)
                 if self.normalize_embeddings:
@@ -172,14 +175,13 @@ class MTLSetFitModel(setfit.SetFitModel):
                 outputs = self.model_head(outputs)
                 logits = outputs["logits"]
 
-                # TODO work here "nll_loss_forward_reduce_cuda_kernel_2d_index" not implemented for 'Float'
                 losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
 
                 # Custom weighting/backprop
                 loss, _ = self.weight_method.backward(
                     losses=losses,
                     shared_parameters=list(self.model_body.parameters()),
-                    task_specific_parameters=list(self.model.model_head.parameters())
+                    task_specific_parameters=list(self.model_head.parameters())
                 )
                 optimizer.step()
 

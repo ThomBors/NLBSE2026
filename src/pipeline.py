@@ -6,7 +6,6 @@ import gc
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 from src.augment import run_augmentation_pipeline
-from src.evaluation import evaluation
 from src.finetune import createMLforWCft
 from src.oversampling import oversampling
 from src.utils import set_seed, title, generate_label_statistics
@@ -72,13 +71,14 @@ class pipeline:
         # --- Code Commente Classification --- #
         classifier_cfg = OmegaConf.to_container(cfg.component.classifier, resolve=False)
         classifier = instantiate(classifier_cfg)
-        print('start')
         classifier(cfg, dsplus, SYNQ,device)
         self.cleanup()
 
         # --- Test Pipeline --- #
-        scores, compute = evaluation(cfg, dsplus, self.langs, self.labels, SYNQ)
-
+        evaluation_cfg = OmegaConf.to_container(cfg.component.evaluation, resolve=False)
+        evaluation = instantiate(evaluation_cfg)
+        scores, compute = evaluation(cfg, dsplus, SYNQ)
+        
         output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 

@@ -1,0 +1,3 @@
+_target_: src.evaluations.MtlEvaluation.EvaluationMtl
+evaluation_type: mtl
+
