@@ -2,8 +2,7 @@
 
 defaults:
   - _self_
-  - experiment: setfitlinear
-  - optimisation: ls
+  - experiment: setfit
   - hydra: default
   - paths: default
   - extras: default
