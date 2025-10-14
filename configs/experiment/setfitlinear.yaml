@@ -1,0 +1,28 @@
+# @package _global_
+_target_: src.pipeline.pipeline
+defaults:
+  - /component/augment: SyntheticData
+  - /component/finetune: ModernBERT
+  - /component/classifier: SetFitLinear
+  - /component/evaluation: SetFitLinear
+  - /component/balancer: BalancerQuality
+
+trainer:
+  SYNQ: 0.99
+  ValidationSize: 0.2
+
+component:
+  augment:
+    augments: 10
+    ntop: 20
+
+  finetune:
+    batch_size: 64
+    learning_rate: 2e-5
+    weight_decay: 0.01
+    mlm_probability: 0.15
+
+  classifier:
+    batch_size: 32
+    num_iterations: 20
+

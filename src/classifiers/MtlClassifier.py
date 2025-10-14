@@ -43,10 +43,16 @@ class MultiTaskHead(nn.Module):
     def __init__(self, input_dim, n_task):
         super().__init__()
         self.n_task = n_task
+
+        self.shared_base = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.LeakyReLU()
+            )
+        
         self.task_heads = nn.ModuleList(
             [
                 nn.Sequential(
-                    nn.Linear(input_dim, 128),
+                    nn.Linear(128, 128),
                     nn.LeakyReLU(),
                     nn.Linear(128, 64),
                     nn.LeakyReLU(),
@@ -62,12 +68,27 @@ class MultiTaskHead(nn.Module):
         Returns: dict with 'logits' key, shape [batch_size, n_tasks, n_classes]
         """
         embeddings = x["sentence_embedding"]
-        logits = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
+        h = self.shared_base(embeddings)
+        logits = torch.stack([head(h) for head in self.task_heads], dim=1)
         return {"logits": logits}  # shape [batch, n_tasks, n_classes]
+    
+    def shared_parameters(self):
+        return (p for p in self.shared_base.parameters())
+
+    def shared_parameters_named(self):
+        return ((name, p) for name, p in self.shared_base.named_parameters())
+
+    def task_specific_parameters(self):
+        return_list = []
+        for task in range(len(self.task_heads)):
+            return_list += [p for p in self.task_heads[task].parameters()]
+        return return_list
+
 
     def predict_proba(self, embeddings: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            probs = torch.stack([head(embeddings) for head in self.task_heads], dim=1)
+            h = self.shared_base(embeddings)
+            probs = torch.stack([head(h) for head in self.task_heads], dim=1)
         return torch.softmax(probs,dim=2)  # probabilities
 
     def predict(self, embeddings: torch.Tensor) -> torch.Tensor:
@@ -178,11 +199,10 @@ class MTLSetFitModel(setfit.SetFitModel):
                 losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
 
                 # Custom weighting/backprop
-                # TODO work only with ls
                 loss, _ = self.weight_method.backward(
                     losses=losses,
-                    shared_parameters=list(self.model_body.parameters()),
-                    task_specific_parameters=list(self.model_head.parameters())
+                    shared_parameters=list(self.model_head.shared_parameters()),
+                    task_specific_parameters=list(self.model_head.task_specific_parameters())
                 )
                 optimizer.step()
 
@@ -210,7 +230,7 @@ class ClassifierMtl:
         self.num_iterations = num_iterations
 
     def __call__(self,cfg, ds, SYNQ,device='cpu'):
-        for lang in langs:
+        for lang in langs: 
             print(f"\n--- Training language: {lang} ---")
             n_tasks = len(labels[lang])
             weight_method = WeightMethods(
@@ -239,7 +259,7 @@ class ClassifierMtl:
 
             args = TrainingArguments(
                 output_dir=output_dir,
-                num_epochs=5 if lang == "java" else 10,
+                num_epochs=5 if lang == "java" else 10, 
                 batch_size=self.batch_size,
                 num_iterations=self.num_iterations,
             )
