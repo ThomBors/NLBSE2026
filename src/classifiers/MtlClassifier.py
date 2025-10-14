@@ -234,7 +234,7 @@ class ClassifierMtl:
             print(f"\n--- Training language: {lang} ---")
             n_tasks = len(labels[lang])
             weight_method = WeightMethods(
-                method=cfg.optimisation.method,
+                method=cfg.optimization.method,
                 n_tasks=n_tasks,
                 device=device,
             )
