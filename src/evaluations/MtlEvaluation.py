@@ -11,7 +11,7 @@ from src.classifiers.MtlClassifier import MTLSetFitModel
 
 class EvaluationMtl:
     def __init__(self,evaluation_type):
-        self.langs = ["pharo"]#["java", "python", "pharo"]
+        self.langs = ["java", "python", "pharo"] 
         self.labels = {
                         "java": [
                             "summary",
@@ -44,15 +44,15 @@ class EvaluationMtl:
                 f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit/{SYNQ}"
             )
             # Check encoder weights
-            # for name, param in model.model_body.named_parameters():
-            #     if torch.isnan(param).any():
-            #         print(f"NaN in {name}")
+            for name, param in model.model_body.named_parameters():
+                if torch.isnan(param).any():
+                    print(f"NaN in {name}")
 
-            # # Check head weights
-            # for i, head in enumerate(model.model_head.task_heads):
-            #     for name, param in head.named_parameters():
-            #         if torch.isnan(param).any():
-            #             print(f"NaN in head {i}, {name}")
+            # Check head weights
+            for i, head in enumerate(model.model_head.task_heads):
+                for name, param in head.named_parameters():
+                    if torch.isnan(param).any():
+                        print(f"NaN in head {i}, {name}")
 
             with torch.profiler.profile(with_flops=True) as p:
                 x = ds[f"{lan}_test"][:]["combo"]
