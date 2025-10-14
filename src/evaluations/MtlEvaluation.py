@@ -41,7 +41,7 @@ class EvaluationMtl:
         for lan in self.langs:
             # to load trained models:
             model = MTLSetFitModel.from_pretrained(
-                f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit/{SYNQ}"
+                f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit-{cfg.component.classifier.classifier_type}/{SYNQ}"
             )
             # Check encoder weights
             for name, param in model.model_body.named_parameters():

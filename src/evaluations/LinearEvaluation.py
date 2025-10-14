@@ -41,7 +41,7 @@ class EvaluationLinear:
         for lan in self.langs:
             # to load trained models:
             model = SetFitModel.from_pretrained(
-                f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit/{SYNQ}"
+                f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit-{cfg.component.classifier.classifier_type}/{SYNQ}"
             )
             # to load pretrained models from Hub:
             # model = SetFitModel.from_pretrained(f'NLBSE/nlbse26_{lan}')

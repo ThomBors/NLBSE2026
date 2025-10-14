@@ -253,7 +253,7 @@ class ClassifierMtl:
             )
            
             
-            output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit/{SYNQ}"
+            output_dir = f"{cfg.paths.res_dir}/models/classifier/{lang}-classifier-SetFit-{cfg.component.classifier.classifier_type}/{SYNQ}"
             os.makedirs(output_dir, exist_ok=True)
 
 

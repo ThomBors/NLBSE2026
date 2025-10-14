@@ -179,7 +179,7 @@ def split_list_into_columns(row, lang):
     return dict
 
 
-def generate_label_statistics(cfg, ds, SYNQ,strategy, output_file_name="label_statistics.csv"):
+def generate_label_statistics(cfg, ds, SYNQ,strategy output_file_name="label_statistics.csv"):
     """
     Generate per-label statistics for oversampled dataset and save to CSV.
     """
