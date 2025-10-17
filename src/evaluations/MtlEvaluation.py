@@ -43,16 +43,16 @@ class EvaluationMtl:
             model = MTLSetFitModel.from_pretrained(
                 f"{cfg.paths.res_dir}/models/classifier/{lan}-classifier-SetFit-{cfg.component.classifier.classifier_type}/{SYNQ}"
             )
-            # Check encoder weights
-            for name, param in model.model_body.named_parameters():
-                if torch.isnan(param).any():
-                    print(f"NaN in {name}")
+            # # Check encoder weights
+            # for name, param in model.model_body.named_parameters():
+            #     if torch.isnan(param).any():
+            #         print(f"NaN in {name}")
 
-            # Check head weights
-            for i, head in enumerate(model.model_head.task_heads):
-                for name, param in head.named_parameters():
-                    if torch.isnan(param).any():
-                        print(f"NaN in head {i}, {name}")
+            # # Check head weights
+            # for i, head in enumerate(model.model_head.task_heads):
+            #     for name, param in head.named_parameters():
+            #         if torch.isnan(param).any():
+            #             print(f"NaN in head {i}, {name}")
 
             with torch.profiler.profile(with_flops=True) as p:
                 x = ds[f"{lan}_test"][:]["combo"]

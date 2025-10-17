@@ -179,6 +179,7 @@ class MTLSetFitModel(setfit.SetFitModel):
         criterion = nn.CrossEntropyLoss()
         optimizer = self._prepare_optimizer(head_learning_rate, body_learning_rate, l2_weight)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+
         for epoch_idx in trange(num_epochs, desc="Epoch", disable=not show_progress_bar):
             for batch in tqdm(dataloader, desc="Iteration", disable=not show_progress_bar, leave=False):
                 features, labels = batch
@@ -197,7 +198,7 @@ class MTLSetFitModel(setfit.SetFitModel):
                 logits = outputs["logits"]
 
                 losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
-
+                print(losses)
                 # Custom weighting/backprop
                 loss, _ = self.weight_method.backward(
                     losses=losses,
@@ -205,7 +206,7 @@ class MTLSetFitModel(setfit.SetFitModel):
                     task_specific_parameters=list(self.model_head.task_specific_parameters())
                 )
                 optimizer.step()
-
+                print(f"Epoch {epoch_idx+1} | Batch Loss: {loss} ")
             scheduler.step()
 
         if not end_to_end:

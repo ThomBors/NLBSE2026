@@ -79,7 +79,7 @@ class pipeline:
         evaluation = instantiate(evaluation_cfg)
         scores, compute = evaluation(cfg, dsplus, SYNQ)
         
-        output_dir = f"{cfg.paths.res_dir}/performance/{cfg.component.classifier.classifier_type}/{strategy}/{SYNQ}"
+        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{cfg.component.classifier.classifier_type}/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)

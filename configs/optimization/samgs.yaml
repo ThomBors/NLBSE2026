@@ -1,4 +1,4 @@
 method: samgs
-gamma: 0.75
+gamma: 0.25
 momentum: 0.9
 beta2: 0.99

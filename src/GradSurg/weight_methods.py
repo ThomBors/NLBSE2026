@@ -203,7 +203,7 @@ class SAMGS(WeightMethod):
     def balance_magnitude(self, grads):
         self.t += 1
         w = grads.clone().detach()
-
+    
         mg = torch.linalg.norm(w, dim=0)
         mg_matrix = mg.unsqueeze(1)  # Shape: (N, 1)
         mg_matrix_T = mg_matrix.T  # Shape: (1, N)
@@ -291,13 +291,10 @@ class SAMGS(WeightMethod):
         ] = None,
         **kwargs,
     ):
-        g, w = self.get_weighted_loss(losses, shared_parameters)
+        l, info = self.get_weighted_loss(losses, shared_parameters)
         if self.max_norm > 0:
             torch.nn.utils.clip_grad_norm_(shared_parameters, self.max_norm)
-        return None, {
-            "GTG": g,
-            "weights": w,
-        }  # NOTE: to align with all other weight methods
+        return l, info
 
 
 
