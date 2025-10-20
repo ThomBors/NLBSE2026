@@ -244,7 +244,7 @@ class SAMGS(WeightMethod):
 
         else:
             g = (w * abs(mhat) / (torch.sqrt(vhat))).sum(1)
-            aligned_w = w * abs(mhat) / (torch.sqrt(vhat))
+            aligned_w = w * abs(mhat) / (torch.sqrt(vhat)+1e-8)
             w = g
 
         return g, aligned_w, w

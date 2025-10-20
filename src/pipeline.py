@@ -9,7 +9,7 @@ from src.augment import run_augmentation_pipeline
 from src.finetune import createMLforWCft
 from src.oversampling import oversampling
 from src.utils import set_seed, title, generate_label_statistics
-
+from pathlib import Path
 
 class pipeline:
     def __init__(self, cfg):
@@ -66,7 +66,8 @@ class pipeline:
         dsplus, strategy = oversampling(cfg, dsplus, SYNQ)
 
         # --- Report Syntetic Quality and Number of Observation--- #
-        generate_label_statistics(cfg, dsplus, SYNQ,strategy, "oversampling_report_complete.csv")
+        output_dir = Path(cfg.paths.res_dir) / "performance" / strategy / cfg.component.classifier.classifier_type / str(SYNQ)
+        generate_label_statistics(cfg, dsplus, SYNQ,output_dir, "oversampling_report_complete.csv")
 
         # --- Code Commente Classification --- #
         classifier_cfg = OmegaConf.to_container(cfg.component.classifier, resolve=False)

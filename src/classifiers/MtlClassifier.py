@@ -260,7 +260,7 @@ class ClassifierMtl:
 
             args = TrainingArguments(
                 output_dir=output_dir,
-                num_epochs=5 if lang == "java" else 10, 
+                num_epochs=1, 
                 batch_size=self.batch_size,
                 num_iterations=self.num_iterations,
             )
