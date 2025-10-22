@@ -221,17 +221,18 @@ class SAMGS(WeightMethod):
         # https://arxiv.org/pdf/2010.07468v5
         self.m = self.b1 * self.m + (1 - self.b1) * w
         self.v = (
-            self.b2 * self.v + ((1 - self.b2) * (1 - similarities.mean()) ** 2) + 1e-8
+            self.b2 * self.v + ((1 - self.b2) * (1 - similarities.mean()) ** 2)
         )
         mhat = self.m / (1 - self.b1**self.t)
         vhat = self.v / (1 - self.b2**self.t)
+        denom = torch.sqrt(torch.clamp(vhat, min=1e-8))
 
         if similarities.mean() < self.gamma:
             #### l2 standardization ####
-            l2_norms = torch.norm(w, dim=0, p=2)
+            l2_norms = torch.norm(w, dim=0, p=2).clamp(min=1e-8)
 
             # Rescale each vector to have unit L2 norm
-            scaled_w_l2 = w / l2_norms
+            scaled_w_l2 = w / l2_norms 
 
             # Using the mean magnitude of the columns
             scaling_factor = l2_norms.mean()
@@ -243,8 +244,8 @@ class SAMGS(WeightMethod):
             w = g
 
         else:
-            g = (w * abs(mhat) / (torch.sqrt(vhat))).sum(1)
-            aligned_w = w * abs(mhat) / (torch.sqrt(vhat)+1e-8)
+            aligned_w = (w * abs(mhat)) / denom
+            g = aligned_w.sum(1)
             w = g
 
         return g, aligned_w, w

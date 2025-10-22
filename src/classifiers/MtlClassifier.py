@@ -40,20 +40,26 @@ labels = {
 # 1. Custom multi-task head
 # ----------------------------------------------------------------------
 class MultiTaskHead(nn.Module):
-    def __init__(self, input_dim, n_task):
+    def __init__(self, input_dim, n_task, init="xavier", generator=None):
         super().__init__()
         self.n_task = n_task
+        self.init = init
+        self.generator = generator
 
         self.shared_base = nn.Sequential(
             nn.Linear(input_dim, 128),
-            nn.LeakyReLU()
+            nn.BatchNorm1d(num_features=128),
+            nn.LeakyReLU(),
+            nn.Dropout(0.25),
             )
         
         self.task_heads = nn.ModuleList(
             [
                 nn.Sequential(
                     nn.Linear(128, 128),
+                    nn.BatchNorm1d(num_features=128),
                     nn.LeakyReLU(),
+                    nn.Dropout(0.25),
                     nn.Linear(128, 64),
                     nn.LeakyReLU(),
                     nn.Linear(64, 2),  # binary classification per task
@@ -61,6 +67,21 @@ class MultiTaskHead(nn.Module):
                 for _ in range(n_task)
             ]
         )
+    # apply init
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            if self.init == "orthogonal":
+                nn.init.orthogonal_(m.weight, generator=self.generator)
+            elif self.init == "xavier":
+                nn.init.xavier_uniform_(m.weight, generator=self.generator)
+            elif self.init == "kaiming":
+                nn.init.kaiming_uniform_(m.weight, nonlinearity="relu", generator=self.generator)
+            else:
+                nn.init.normal_(m.weight, 0, 0.02)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x: dict) -> dict:
         """
@@ -198,7 +219,6 @@ class MTLSetFitModel(setfit.SetFitModel):
                 logits = outputs["logits"]
 
                 losses = torch.stack([criterion(logits[:, i], labels[:, i]) for i in range(self.n_task)])
-                print(losses)
                 # Custom weighting/backprop
                 loss, _ = self.weight_method.backward(
                     losses=losses,
@@ -206,7 +226,6 @@ class MTLSetFitModel(setfit.SetFitModel):
                     task_specific_parameters=list(self.model_head.task_specific_parameters())
                 )
                 optimizer.step()
-                print(f"Epoch {epoch_idx+1} | Batch Loss: {loss} ")
             scheduler.step()
 
         if not end_to_end:
@@ -260,9 +279,10 @@ class ClassifierMtl:
 
             args = TrainingArguments(
                 output_dir=output_dir,
-                num_epochs=1, 
+                num_epochs=5 if lang == "java" else 10, 
                 batch_size=self.batch_size,
                 num_iterations=self.num_iterations,
+                head_learning_rate=1e-3
             )
 
             trainer = Trainer(
