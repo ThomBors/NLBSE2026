@@ -7,7 +7,7 @@ from setfit import Trainer, TrainingArguments
 from setfit import SetFitModel as BaseSetFitModel
 from src.GradSurg.weight_methods import WeightMethods
 from typing import List, Union, Optional
-import adabelief_pytorch
+from adabelief_pytorch import AdaBelief
 import setfit
 import torch
 from torch import nn
@@ -239,7 +239,7 @@ class MTLSetFitModel(setfit.SetFitModel):
     ) -> torch.optim.Optimizer:
         body_learning_rate = body_learning_rate or head_learning_rate
         l2_weight = l2_weight or 1e-2
-        optimizer = adabelief_pytorch.AdaBelief(
+        optimizer = AdaBelief(
             [
                 {
                     "params": self.model_body.parameters(),
