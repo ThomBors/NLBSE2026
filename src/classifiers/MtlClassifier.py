@@ -7,7 +7,7 @@ from setfit import Trainer, TrainingArguments
 from setfit import SetFitModel as BaseSetFitModel
 from src.GradSurg.weight_methods import WeightMethods
 from typing import List, Union, Optional
-
+import adabelief_pytorch
 import setfit
 import torch
 from torch import nn
@@ -198,7 +198,7 @@ class MTLSetFitModel(setfit.SetFitModel):
 
         dataloader = self._prepare_dataloader(x_train, y_train, batch_size, max_length)
         criterion = nn.CrossEntropyLoss()
-        optimizer = self._prepare_optimizer(head_learning_rate, body_learning_rate, l2_weight)
+        optimizer = self.__prepare_optimizer__(head_learning_rate, body_learning_rate, l2_weight)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
 
         for epoch_idx in trange(num_epochs, desc="Epoch", disable=not show_progress_bar):
@@ -230,6 +230,27 @@ class MTLSetFitModel(setfit.SetFitModel):
 
         if not end_to_end:
             self.unfreeze("body")
+
+    def __prepare_optimizer__(
+        self,
+        head_learning_rate: float,
+        body_learning_rate: Optional[float],
+        l2_weight: float,
+    ) -> torch.optim.Optimizer:
+        body_learning_rate = body_learning_rate or head_learning_rate
+        l2_weight = l2_weight or 1e-2
+        optimizer = adabelief_pytorch.AdaBelief(
+            [
+                {
+                    "params": self.model_body.parameters(),
+                    "lr": body_learning_rate,
+                    "weight_decay": l2_weight,
+                },
+                {"params": self.model_head.parameters(), "lr": head_learning_rate, "weight_decay": l2_weight},
+            ],
+        )
+
+        return optimizer
     
 
 # ----------------------------------------------------------------------
