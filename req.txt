@@ -1,6 +1,7 @@
 
 # --- Core deep learning framework --- #
 torch==2.8.0
+adabelief-pytorch==0.2.0
 
 # --- Hugging Face ecosystem --- #
 transformers==4.56
