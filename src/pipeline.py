@@ -79,8 +79,14 @@ class pipeline:
         evaluation_cfg = OmegaConf.to_container(cfg.component.evaluation, resolve=False)
         evaluation = instantiate(evaluation_cfg)
         scores, compute = evaluation(cfg, dsplus, SYNQ)
+
+
+        if cfg.component.classifier.classifier_type == 'mtl':
+            classifier_type = f"{cfg.component.classifier.classifier_type}_{cfg.optimization.gamma}"
+        else:
+            classifier_type = f"{cfg.component.classifier.classifier_type}"
         
-        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{cfg.component.classifier.classifier_type}/{SYNQ}"
+        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{classifier_type}/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)
