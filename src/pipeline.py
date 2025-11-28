@@ -82,11 +82,11 @@ class pipeline:
 
 
         if cfg.component.classifier.classifier_type == 'mtl':
-            classifier_type = f"{cfg.component.classifier.classifier_type}_{cfg.optimization.gamma}"
+            classifier_path = f"{cfg.component.classifier.classifier_type}_{cfg.optimization.gamma}"
         else:
-            classifier_type = f"{cfg.component.classifier.classifier_type}"
+            classifier_path = f"{cfg.component.classifier.classifier_type}"
         
-        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{classifier_type}/{SYNQ}"
+        output_dir = f"{cfg.paths.res_dir}/performance/{strategy}/{classifier_path}/{SYNQ}"
         os.makedirs(output_dir, exist_ok=True)
 
         scores.to_csv(f"{output_dir}/scores.csv", index=False)
