@@ -20,11 +20,5 @@ sync: ## Merge changes from main branch to your current branch
 	git pull
 	git pull origin main
 
-test: ## Run not slow tests
-	pytest -k "not slow"
-
-test-full: ## Run all tests
-	pytest
-
 run: ## run the full pipeline
 	python src/main.py
