@@ -1,6 +1,6 @@
 <div align="center">
 
-# Synthetic Oversampling in Code Comment Classification
+# High-quality data augmentation for code comment classification.
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: Hydra" src="https://img.shields.io/badge/Config-Hydra-89b8cd"></a>
