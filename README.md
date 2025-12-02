@@ -176,11 +176,11 @@ The directory structure of the project:
 Proportion of positive synthetic observations included in the dataset at different levels of $q_{synt}$:
 
 <div align="center">
-<img src="img/dataPositive2.pdf" />
+<img src="img/dataPositive2.svg" />
 </div>
 
 Variation in precision, recall, and F1-score relative to the baseline for each class, evaluated across multiple values of $q_{synt}$:
 
 <div align="center">
-<img src="img/variationINf1_full.pdf" />
+<img src="img/variationINf1_full.svg" />
 </div>
