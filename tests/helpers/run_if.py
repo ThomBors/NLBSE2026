@@ -17,7 +17,7 @@ from tests.helpers.package_available import (_COMET_AVAILABLE,
                                              _FAIRSCALE_AVAILABLE, _IS_WINDOWS,
                                              _MLFLOW_AVAILABLE,
                                              _NEPTUNE_AVAILABLE, _SH_AVAILABLE,
-                                             _TPU_AVAILABLE, _WANDB_AVAILABLE)
+                                              _WANDB_AVAILABLE)
 
 
 class RunIf:

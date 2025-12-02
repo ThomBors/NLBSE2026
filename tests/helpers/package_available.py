@@ -1,8 +1,6 @@
 import platform
 
 import pkg_resources
-from lightning.fabric.accelerators import TPUAccelerator
-
 
 def _package_available(package_name: str) -> bool:
     """Check if a package is available in your environment.
@@ -15,9 +13,6 @@ def _package_available(package_name: str) -> bool:
         return pkg_resources.require(package_name) is not None
     except pkg_resources.DistributionNotFound:
         return False
-
-
-_TPU_AVAILABLE = TPUAccelerator.is_available()
 
 _IS_WINDOWS = platform.system() == "Windows"
 
