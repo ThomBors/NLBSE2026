@@ -7,7 +7,7 @@
 <a href="https://huggingface.co/username/finetuned-model">
   <img alt="Fine-tuned Model: HF" src="https://img.shields.io/badge/Model-Hugging%20Face-6f42c1?logo=huggingface&logoColor=white">
 </a>
-[![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
+
 [![Conference](http://img.shields.io/badge/Conference-NLBSE2026-4b44ce.svg)](https://nlbse2026.github.io/index.html)
 [![license](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](https://github.com/ashleve/lightning-hydra-template#license)
 
@@ -70,7 +70,7 @@ pip install -r requirements.txt
 
 ## How to run
 
-Run the Synthetic Oversampling Pipeline with default configuration
+Run the Synthetic Oversampling Pipeline with default configuration presented in the result section ( MTL model head with Data Augmentation pipeline)
 
 ```bash
 python src/main.py 
@@ -82,10 +82,46 @@ Run the Synthetic Oversampling Pipeline with chosen experiment configuration fro
 python src/main.py experiment=experiment_name.yaml
 ```
 
-You can override any parameter from command line like this
+### Example
+
+Using the `setfitlinear.yaml` configuration:
+
+```yaml
+_target_: src.pipeline.pipeline           # Entry point for running the experiment
+
+defaults:
+  - /component/augment: SyntheticData     # Synthetic data generation
+  - /component/finetune: ModernBERT       # Generator finetuning
+  - /component/classifier: SetFitLinear   # Main classifier
+  - /component/evaluation: SetFitLinear   # Evaluation configuration
+  - /component/balancer: BalancerRatio    # Balancer type
+
+trainer:                                  # Dataset configuration
+  SYNQ: 0.99
+  ValidationSize: 0.2
+
+component:                                # Easy access to component-level hyperparameters
+  augment:
+    augments: 10
+    ntop: 20
+
+  finetune:
+    batch_size: 64
+    learning_rate: 2e-5
+    weight_decay: 0.01
+    mlm_probability: 0.15
+
+  classifier:
+    batch_size: 32
+    num_iterations: 20
+```
+
+### Override any parameter from the command line
+
+All configuration parameters can be overridden directly via CLI:
 
 ```bash
-python src/main.py trainer.SYNQ=0.5 
+python src/main.py trainer.SYNQ=0.5  component.balancer=BalancerRatio
 ```
 
 ## Project Structure
@@ -135,5 +171,16 @@ The directory structure of the project:
 ├── requirements.txt          <- File for installing python dependencies
 └── README.md
 ```
+## Extra Visualisation of the Results
 
-<br>
+Proportion of positive synthetic observations included in the dataset at different levels of $q_{synt}$:
+
+<div align="center">
+<img src="img/dataPositive2.pdf" />
+</div>
+
+Variation in precision, recall, and F1-score relative to the baseline for each class, evaluated across multiple values of $q_{synt}$:
+
+<div align="center">
+<img src="img/variationINf1_full.pdf" />
+</div>

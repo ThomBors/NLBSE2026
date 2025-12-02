@@ -5,7 +5,7 @@ defaults:
   - /component/finetune: ModernBERT
   - /component/classifier: SetFitLinear
   - /component/evaluation: SetFitLinear
-  - /component/balancer: BalancerQuality
+  - /component/balancer: BalancerRatio
 
 trainer:
   SYNQ: 0.99

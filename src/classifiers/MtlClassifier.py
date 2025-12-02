@@ -9,8 +9,6 @@ from src.GradSurg.weight_methods import WeightMethods
 from typing import List, Union, Optional
 from adabelief_pytorch import AdaBelief
 import setfit
-import torch
-from torch import nn
 from tqdm.asyncio import trange, tqdm
 
 langs = ["java", "python", "pharo"]
