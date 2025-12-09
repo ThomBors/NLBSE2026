@@ -108,7 +108,7 @@ defaults:
   - /component/balancer: BalancerRatio    # Balancer type
 
 trainer:                                  # Dataset configuration
-  SYNQ: 0.99
+  SYNQ: 0.99                              # set the QSYNT hyperparameter
   ValidationSize: 0.2
 
 component:                                # Easy access to component-level hyperparameters
@@ -184,13 +184,13 @@ The directory structure of the project:
 ```
 ## Extra Visualisation of the Results
 
-Proportion of positive synthetic observations included in the dataset at different levels of $q_{synt}$:
+Proportion of positive synthetic observations included in the dataset at different levels of QSYNT:
 
 <div align="center">
 <img src="img/dataPositive2.svg" />
 </div>
 
-Variation in precision, recall, and F1-score relative to the baseline for each class, evaluated across multiple values of $q_{synt}$:
+Variation in precision, recall, and F1-score relative to the baseline for each class, evaluated across multiple values of QSYNT:
 
 <div align="center">
 <img src="img/variationINf1_full.svg" />
