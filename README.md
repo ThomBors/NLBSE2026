@@ -1,6 +1,6 @@
 <div align="center">
 
-# High-quality data augmentation for code comment classification.
+# High-quality data augmentation for code comment classification
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: Hydra" src="https://img.shields.io/badge/Config-Hydra-89b8cd"></a>
@@ -68,23 +68,34 @@ pip install -U pip
 pip install -r requirements.txt  
 ```
 
-## How to run
+## How to Run
 
-Run the Synthetic Oversampling Pipeline with default configuration presented in the result section ( MTL model head with Data Augmentation pipeline)
+### Run the Synthetic Oversampling Pipeline (Default Configuration)
 
-```bash
-python src/main.py 
+To execute the pipeline using the default configuration presented in the results section (MTL model head with the Data Augmentation pipeline):
+
+```python
+python src/main.py
 ```
 
-Run the Synthetic Oversampling Pipeline with chosen experiment configuration from [configs/experiment/](configs/experiment/)
+### Run the Pipeline with a Custom Experiment Configuration
 
-```bash
+To run the pipeline with a specific experiment configuration from the  
+[`configs/experiment/`](configs/experiment/) directory:
+
+```python
 python src/main.py experiment=experiment_name.yaml
 ```
 
-### Example
+Currently, two main configurations are provided:
 
-Using the `setfitlinear.yaml` configuration:
+- **`setfitlinear.yaml`** — trains the baseline model with various data augmentation strategies.
+- **`setfitmtl.yaml`** — trains the Multi-Task Learning (MTL) model architecture.
+
+### Example: Configuring Hyperparameters
+
+Below is an example of how to define your hyperparameter set using the `setfitlinear.yaml` configuration:
+
 
 ```yaml
 _target_: src.pipeline.pipeline           # Entry point for running the experiment
