@@ -190,7 +190,10 @@ Proportion of positive synthetic observations included in the dataset at differe
 <img src="img/dataPositive2.svg" />
 </div>
 
-Variation in precision, recall, and F1-score relative to the baseline for each class, evaluated across multiple values of QSYNT:
+Comparison of the STACC baseline model performance (red lines) with versions of the STACC model enhanced using two alternative strategies: Augmentation and Oversampling.
+The evaluation spans multiple QSYNT values to examine how varying quality of synthetic data influence model behavior.
+For each language and class, we report changes in precision, recall, and F1-score relative to the original STACC baseline with out synthetic data.
+These plots reveal whether each enhancement strategy leads to performance gains or declines in each objective class.
 
 <div align="center">
 <img src="img/variationINf1_full.svg" />
