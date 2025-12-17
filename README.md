@@ -15,9 +15,25 @@
 
 ## Description
 
-[NLBSE tool competition 2026](https://nlbse2026.github.io/tools/) 
+### Abstact
+Code comments serve a crucial role in software development for documenting functionality, clarifying design choices, and assisting with issue tracking. 
+They capture developers' insights about the surrounding source code, serving as an essential resource for both human comprehension and automated analysis. 
+Nevertheless, since comments are in natural language, they present challenges for machine-based code understanding. 
+To address this, recent studies have applied natural language processing (NLP) and deep learning techniques to classify comments according to developers’ intentions. 
+However, existing datasets for this task suffer from size limitations and class imbalance, as they rely on manual annotations and may not accurately represent the distribution of comments in real-world codebases.
+To overcome this issue, we introduce new synthetic oversampling and augmentation techniques based on high-quality data generation to enhance the [NLBSE’26 challenge datasets](https://nlbse2026.github.io/tools/). 
+Our Synthetic Quality Oversampling Technique and Augmentation Technique (**Q-SYNTH**) yield promising results, improving the base classifier by $2.56\%$. 
 
-The following figure depicts the application architecture in terms of components and data flows (solid links):
+### Resources & Links
+- [NLBSE tool competition 2026](https://nlbse2026.github.io/tools/) 
+
+- [Colab – Competition Score Testing](https://colab.research.google.com/drive/18Wif1FCWT0Sl4_9ljfmm5pOF2n1b55Mi?usp=sharing)
+
+
+### Architecture
+
+The figure below illustrates the system architecture, detailing the core components, control flow (solid arrows), and data flow relationships (dashed arrows).
+
 
 ```mermaid
 flowchart LR
@@ -25,10 +41,10 @@ flowchart LR
     Data[Data: NLBSE2026]:::compext
 
     %% Pipeline
-    subgraph Pipeline [Synthetic Oversampling Pipeline]
+    subgraph Pipeline [Synthetic Generation Pipeline]
         Generator[Generator<br/> ModernBERT]:::comp
         Augment[Sentence Similarity<br/>SetFit]:::comp
-        Balancer[Oversampling <br/> Strategy]:::comp
+        Balancer[Data Selection <br/> Strategy]:::comp
     end
 
     %% Classifier
@@ -40,6 +56,7 @@ flowchart LR
     Generator --> Augment
     Augment --> Balancer
     Balancer --> Classifier
+    Data -.-> Classifier
 
     %% Styles
     classDef scope fill:#fff,stroke:#333,stroke-width:1px,stroke-dasharray:5 5,color:#444,font-size:10pt;
