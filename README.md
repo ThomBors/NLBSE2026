@@ -71,6 +71,12 @@ flowchart LR
 
 ## Installation
 
+The tool is implemented in Python and can be installed using standard package management tools.  
+All experiments reported in the NLBSE 2026 tool competition were conducted using the provided dependency configuration.
+
+
+Clone the repository and install the required dependencies:
+
 #### Pip
 
 ```bash
@@ -161,7 +167,7 @@ The directory structure of the project:
 │
 ├── configs                   <- Hydra configs
 │   ├── component                <- Callbacks configs
-|   |   ├── augment                 <- Data augmentation configs
+|   |   ├── augment                 <- Data Generation configs
 |   |   ├── balancer                <- Balancing strategy configs
 |   |   ├── classifier              <- Final classifier configs
 |   |   ├── finetue                 <- Generative model configs
@@ -173,7 +179,7 @@ The directory structure of the project:
 │   │
 │   └── train.yaml            <- Main config for training
 │
-├── data                   <- Data generate from Augmentation Component
+├── data                   <- Data generate from Generation Component
 |
 ├── results                <- Results of the fine code comment classification
 |
@@ -199,6 +205,10 @@ The directory structure of the project:
 ├── requirements.txt          <- File for installing python dependencies
 └── README.md
 ```
+
+---
+---
+
 ## Extra Visualisation of the Results
 
 Proportion of positive synthetic observations included in the dataset at different levels of QSYNT:
